@@ -1,0 +1,12 @@
+require:
+  - rubocop-rails
+  - rubocop-performance
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.2
+  Exclude:
+    - "db/schema.rb"
+    - "bin/**/*"
+    - "node_modules/**/*"
+    - "vendor/**/*"

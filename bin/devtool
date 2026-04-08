@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../config/boot"
+require_relative "../config/environment"
+
+require "thor"
+require "pastel"
+require "tty-prompt"
+require "tty-spinner"
+require "octokit"
+
+require_relative "../lib/cli/main"
+
+CLI::Main.start(ARGV)
