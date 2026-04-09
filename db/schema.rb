@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_09_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_09_044106) do
   create_table "configs", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.boolean "is_default", default: false, null: false
@@ -41,6 +41,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_000001) do
     t.string "environment"
     t.datetime "last_occurrence_at"
     t.text "occurrence_data"
+    t.string "project"
     t.integer "rollbar_id", null: false
     t.boolean "selected", default: false, null: false
     t.string "severity"

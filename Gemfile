@@ -20,6 +20,9 @@ gem 'thor'
 # GitHub API client (@octokit/rest replacement)
 gem 'octokit'
 
+# Faraday retry middleware
+gem 'faraday-retry'
+
 # Interactive terminal prompts (inquirer replacement)
 gem 'tty-prompt'
 

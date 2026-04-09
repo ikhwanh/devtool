@@ -22,6 +22,8 @@ class FetchRollbar
     spinner = @spinner_factory.call("Fetching Rollbar items, last #{@days_ago} days ...")
     spinner.auto_spin
 
+    @rollbar_project ||= rollbar_get('/project')['name']
+
     cutoff = @days_ago.days.ago
     fetched = fetch_pages(cutoff)
     deduped = deduplicate(fetched)
@@ -80,7 +82,8 @@ class FetchRollbar
         title: raw['title'],
         environment: raw['environment'],
         total_occurrences: raw['total_occurrences'],
-        last_occurrence_at: Time.zone.at(raw['last_occurrence_timestamp'])
+        last_occurrence_at: Time.zone.at(raw['last_occurrence_timestamp']),
+        project: @rollbar_project
       )
 
       changed = true if record.new_record? || old_ts != raw['last_occurrence_timestamp']

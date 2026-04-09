@@ -2,7 +2,13 @@ Run this Ruby snippet to get the selected Rollbar items that don't already have 
 
 ```
 bin/rails runner "
-  items = RollbarItem.selected.reject(&:submitted_to_github?)
+  cfg = Config.project_config(Config.default_project)
+  rollbar_account = cfg['rollbar_account']
+  items = RollbarItem.selected.reject(&:submitted_to_github?).map do |item|
+    item.as_json.merge(
+      rollbar_url: \"https://app.rollbar.com/a/#{rollbar_account}/fix/item/#{item.project}/#{item.rollbar_id}#detail\"
+    )
+  end
   puts items.to_json
 "
 ```
@@ -20,7 +26,7 @@ For each item:
    - **Title**: `[HIGH/MEDIUM/LOW] concise description`
    - **Body** (markdown):
      - `## Description` — what the error is and why it matters
-     - `## Error Details` — level, environment, occurrence count, last seen, and a link to the Rollbar item (`https://rollbar.com/item/{rollbar_id}/`)
+     - `## Error Details` — level, environment, occurrence count, last seen, and a link to the Rollbar item (use the `rollbar_url` field from the data)
      - `## Stack Trace` — formatted, inside a code block
      - `## Root Cause Analysis` — likely cause based on error message, stack trace, and any source code context
      - `## Suggested Fix` — concrete steps or code changes to resolve it
