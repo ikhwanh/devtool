@@ -11,10 +11,12 @@ module CLI
     method_option :severity,      type: :string,                   aliases: '-s',
                                   desc: 'Auto-select only items of this severity (high/medium/low)'
     method_option :rollbar_token, type: :string,                   aliases: '--rollbar-token',
-                                  desc: 'Rollbar API token (falls back to ROLLBAR_TOKEN env var)'
+                                  desc: 'Rollbar API token (falls back to config/ROLLBAR_TOKEN env var)'
+    method_option :config,        type: :string,                   aliases: '-c',
+                                  desc: 'Project config to use (defaults to the project marked as default)'
 
     def analyze
-      pastel = Pastel.new
+      pastel   = Pastel.new
       severity = options[:severity]&.downcase
 
       if severity && RollbarItem::SEVERITIES.exclude?(severity)
@@ -22,9 +24,11 @@ module CLI
         exit 1
       end
 
-      rollbar_token = options[:rollbar_token] || ENV.fetch('ROLLBAR_TOKEN', nil)
+      cfg           = load_project_config(options[:config])
+      rollbar_token = options[:rollbar_token] || cfg['rollbar_token']
 
       say pastel.bold("\nRollbar Issue Analyzer\n")
+      say pastel.dim("  config:     #{options[:config] || Config.default_project || '(none)'}")
       say pastel.dim("  days-ago:   #{options[:days_ago]}")
       say pastel.dim("  autoselect: #{options[:autoselect]}")
       say pastel.dim("  severity:   #{severity}") if severity
@@ -50,6 +54,15 @@ module CLI
         autoselect: options[:autoselect],
         severity: severity
       ).call
+    end
+
+    private
+
+    def load_project_config(project_name)
+      project = project_name || Config.default_project
+      return {} unless project
+
+      Config.project_config(project)
     end
   end
 end

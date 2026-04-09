@@ -5,13 +5,13 @@ class CreateIssues
 
   def initialize(github_repo:, github_token: nil, pastel: Pastel.new, spinner_factory: method(:default_spinner))
     @github_repo = github_repo
-    @github_token = github_token || ENV.fetch('GITHUB_TOKEN', nil)
+    @github_token = github_token
     @pastel = pastel
     @spinner_factory = spinner_factory
   end
 
   def call
-    raise ArgumentError, 'GITHUB_TOKEN env var or --github-token is required' if @github_token.blank?
+    raise ArgumentError, '--github-token is required (or set it via `bin/devtool config`)' if @github_token.blank?
 
     owner, repo = @github_repo.split('/')
     raise ArgumentError, "Invalid --github-repo \"#{@github_repo}\". Expected format: owner/repo" unless owner && repo

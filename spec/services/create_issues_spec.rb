@@ -74,17 +74,7 @@ RSpec.describe CreateIssues do
       end
 
       it 'raises ArgumentError' do
-        with_env('GITHUB_TOKEN' => nil) do
-          expect { service.call }.to raise_error(ArgumentError, /GITHUB_TOKEN/)
-        end
-      end
-
-      def with_env(vars)
-        old = vars.keys.index_with { |k| ENV.fetch(k, nil) }
-        vars.each { |k, v| v.nil? ? ENV.delete(k) : ENV[k] = v }
-        yield
-      ensure
-        old.each { |k, v| v.nil? ? ENV.delete(k) : ENV[k] = v }
+        expect { service.call }.to raise_error(ArgumentError, /--github-token/)
       end
     end
 

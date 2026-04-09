@@ -10,7 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_08_012856) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_09_000001) do
+  create_table "configs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.boolean "is_default", default: false, null: false
+    t.string "key", null: false
+    t.string "project", null: false
+    t.datetime "updated_at", null: false
+    t.string "value"
+    t.index ["is_default"], name: "index_configs_on_is_default"
+    t.index ["project", "key"], name: "index_configs_on_project_and_key", unique: true
+  end
+
   create_table "github_issues", force: :cascade do |t|
     t.text "body"
     t.datetime "created_at", null: false
