@@ -5,6 +5,8 @@ require_relative 'issues_command'
 
 module CLI
   class Main < Thor
+    package_name 'devtool'
+
     desc 'rollbar COMMAND', 'Rollbar item commands'
     subcommand 'rollbar', RollbarCommand
 

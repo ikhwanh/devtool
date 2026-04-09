@@ -1,12 +1,52 @@
-require:
+plugins:
   - rubocop-rails
   - rubocop-performance
 
 AllCops:
   NewCops: enable
   TargetRubyVersion: 3.2
+  SuggestExtensions: false
   Exclude:
     - "db/schema.rb"
     - "bin/**/*"
     - "node_modules/**/*"
     - "vendor/**/*"
+
+Style/Documentation:
+  Enabled: false
+
+# RSpec blocks are naturally long
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+
+Metrics/MethodLength:
+  Max: 35
+  Exclude:
+    - "db/migrate/**/*"
+
+Metrics/AbcSize:
+  Max: 50
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
+Metrics/ClassLength:
+  Max: 110
+
+Metrics/ParameterLists:
+  Max: 6
+
+Layout/LineLength:
+  Max: 130
+
+# CLI app — exit/abort are intentional
+Rails/Exit:
+  Enabled: false
+
+# update_all is used intentionally in this project
+Rails/SkipsModelValidations:
+  Enabled: false

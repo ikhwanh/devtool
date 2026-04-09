@@ -63,9 +63,7 @@ class FetchRollbar
     seen = {}
     items.each do |item|
       existing = seen[item['title']]
-      if existing.nil? || item['last_occurrence_timestamp'] > existing['last_occurrence_timestamp']
-        seen[item['title']] = item
-      end
+      seen[item['title']] = item if existing.nil? || item['last_occurrence_timestamp'] > existing['last_occurrence_timestamp']
     end
     seen.values
   end
