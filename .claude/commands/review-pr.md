@@ -53,21 +53,39 @@ For each PR in the result:
 
    **Typos** — check for typos in code, comments, and documentation.
 
-4. **Write a thorough code review** in markdown covering:
+4. **Produce the review in two parts:**
+
+   **Part A — Inline comments** for every specific issue or suggestion that can be tied to a line of code.
+
+   To determine the correct line number, parse the diff patch for each file:
+   - Each hunk header looks like `@@ -old_start,old_count +new_start,new_count @@`
+   - `new_start` is the line number in the new file where that hunk begins
+   - Count downward through the hunk lines (skip lines starting with `-`, count context lines and `+` lines) to find the exact line number for each changed or context line you want to comment on
+   - Only comment on lines present in the new version of the file (i.e. context lines or `+` lines, never `-` lines)
+
+   Each inline comment must include:
+   - `path` — the file path (from `filename` in diff_json)
+   - `line` — the line number in the new version of the file
+   - `side` — always `"RIGHT"`
+   - `body` — concise markdown comment; prefix with `[critical]`, `[major]`, or `[minor]` for issues; no prefix for suggestions or positives
+
+   **Part B — Overall summary** in markdown covering:
    - `## Summary` — one paragraph on what the PR does and why
    - `## Staging Required` — yes/no and reason; omit section if not required
-   - `## Issues` — bugs, security concerns, logic errors; prefix each with `[critical]`, `[major]`, or `[minor]`; omit section if none
-   - `## Suggestions` — code quality, readability, performance, testing gaps; omit section if none
    - `## Positives` — what is done well
    - `## Verdict` — one of: **Approve**, **Approve with minor suggestions**, **Request changes**
+
+   Issues and suggestions that are tied to specific lines should appear as inline comments only, not repeated in the summary.
 
 5. **Save the review** using:
 
 ```
-bin/rails runner "PrReview.find(<id>).update!(review_body: '<escaped markdown review>')"
+bin/rails runner "PrReview.find(<id>).update!(review_body: '<escaped summary>', comments_json: '<escaped comments JSON>')"
 ```
 
-   Escape single quotes in the review body as `'\''` before inserting into the shell string.
+   - `<escaped summary>` — the Part B markdown, with single quotes escaped as `'\''`
+   - `<escaped comments JSON>` — a JSON array of `{ path, line, side, body }` objects, with single quotes escaped as `'\''`
+   - If there are no inline comments, pass `comments_json: '[]'`
 
 After all reviews are written, print a summary:
 

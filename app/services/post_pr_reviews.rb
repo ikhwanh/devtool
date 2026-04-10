@@ -33,8 +33,9 @@ class PostPrReviews
         result = client.create_pull_request_review(
           @github_repo,
           review.pr_number,
-          body:  review.review_body,
-          event: 'COMMENT'
+          body:     review.review_body,
+          event:    'COMMENT',
+          comments: review.inline_comments
         )
 
         client.add_labels_to_an_issue(@github_repo, review.pr_number, [AI_REVIEWED_LABEL])

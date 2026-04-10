@@ -13,7 +13,8 @@ FactoryBot.define do
     submitted_at { nil }
 
     trait :reviewed do
-      review_body { "## Summary\nLooks good." }
+      review_body   { "## Summary\nLooks good." }
+      comments_json { [{ path: 'app/models/payment.rb', line: 10, side: 'RIGHT', body: '[minor] Rename for clarity.' }].to_json }
     end
 
     trait :submitted do

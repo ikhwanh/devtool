@@ -48,6 +48,22 @@ RSpec.describe PrReview do
     end
   end
 
+  describe '#inline_comments' do
+    it 'parses comments_json into an array of hashes' do
+      comments = [{ path: 'app/foo.rb', line: 5, side: 'RIGHT', body: '[minor] Rename this.' }]
+      review = build(:pr_review, comments_json: comments.to_json)
+      expect(review.inline_comments).to eq([{ 'path' => 'app/foo.rb', 'line' => 5, 'side' => 'RIGHT', 'body' => '[minor] Rename this.' }])
+    end
+
+    it 'returns an empty array when comments_json is blank' do
+      expect(build(:pr_review, comments_json: nil).inline_comments).to eq([])
+    end
+
+    it 'returns an empty array when comments_json is invalid JSON' do
+      expect(build(:pr_review, comments_json: 'bad').inline_comments).to eq([])
+    end
+  end
+
   describe '#diff_files' do
     it 'parses diff_json into an array of hashes' do
       review = build(:pr_review, diff_json: [{ filename: 'app/foo.rb', status: 'modified', patch: '@@ -1 +1 @@' }].to_json)

@@ -34,12 +34,13 @@ RSpec.describe PostPrReviews do
         allow(octokit_client).to receive(:add_labels_to_an_issue)
       end
 
-      it 'posts the review to GitHub' do
+      it 'posts the review with body and inline comments to GitHub' do
         expect(octokit_client).to receive(:create_pull_request_review).with(
           github_repo,
           review.pr_number,
-          body:  review.review_body,
-          event: 'COMMENT'
+          body:     review.review_body,
+          event:    'COMMENT',
+          comments: review.inline_comments
         )
         service.call
       end

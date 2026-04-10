@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_10_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_10_000002) do
   create_table "configs", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.boolean "is_default", default: false, null: false
@@ -37,6 +37,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_000001) do
   end
 
   create_table "pr_reviews", force: :cascade do |t|
+    t.text "comments_json"
     t.datetime "created_at", null: false
     t.text "diff_json"
     t.string "github_repo", null: false

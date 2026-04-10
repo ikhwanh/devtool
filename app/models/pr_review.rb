@@ -25,4 +25,12 @@ class PrReview < ApplicationRecord
   rescue JSON::ParserError
     []
   end
+
+  def inline_comments
+    return [] if comments_json.blank?
+
+    JSON.parse(comments_json)
+  rescue JSON::ParserError
+    []
+  end
 end
