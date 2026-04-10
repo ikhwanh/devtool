@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_09_044106) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_10_000001) do
   create_table "configs", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.boolean "is_default", default: false, null: false
@@ -34,6 +34,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_044106) do
     t.datetime "updated_at", null: false
     t.index ["github_issue_url"], name: "index_github_issues_on_github_issue_url"
     t.index ["rollbar_item_id"], name: "index_github_issues_on_rollbar_item_id"
+  end
+
+  create_table "pr_reviews", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "diff_json"
+    t.string "github_repo", null: false
+    t.string "head_sha", null: false
+    t.text "pr_body"
+    t.integer "pr_number", null: false
+    t.string "pr_title"
+    t.text "review_body"
+    t.string "review_url"
+    t.datetime "submitted_at"
+    t.datetime "updated_at", null: false
+    t.index ["github_repo", "pr_number", "head_sha"], name: "index_pr_reviews_on_github_repo_and_pr_number_and_head_sha", unique: true
   end
 
   create_table "rollbar_items", force: :cascade do |t|

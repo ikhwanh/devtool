@@ -2,6 +2,7 @@
 
 require_relative 'rollbar_command'
 require_relative 'issues_command'
+require_relative 'pr_command'
 
 module CLI
   class Main < Thor
@@ -130,6 +131,9 @@ module CLI
 
     desc 'issues COMMAND', 'GitHub issue commands'
     subcommand 'issues', IssuesCommand
+
+    desc 'pr COMMAND', 'Pull request commands'
+    subcommand 'pr', PrCommand
 
     def self.exit_on_failure?
       true

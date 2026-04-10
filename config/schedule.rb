@@ -12,3 +12,8 @@ every 2.hours do
   command "cd #{path} && bin/devtool rollbar analyze --severity high --days-ago 1 --autoselect >> log/cron.log 2>&1"
   command "cd #{path} && bin/devtool issues create >> log/cron.log 2>&1"
 end
+
+# Every hour: review new or updated pull requests
+every 1.hour do
+  command "cd #{path} && bin/devtool pr review --days-ago 7 >> log/cron.log 2>&1"
+end
