@@ -7,7 +7,7 @@ class CreatePrReviews < ActiveRecord::Migration[8.0]
       t.integer :pr_number,    null: false
       t.string  :pr_title
       t.text    :pr_body
-      t.string  :head_sha,     null: false
+      t.string  :head_sha, null: false
       t.text    :diff_json
       t.text    :review_body
       t.string  :review_url

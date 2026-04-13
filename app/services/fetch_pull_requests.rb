@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 class FetchPullRequests
-  def initialize(github_repo:, github_token:, days_ago: 7, pastel: Pastel.new, spinner_factory: method(:default_spinner))
+  def initialize(github_repo:, github_token:, days_ago: 7, pr_number: nil, pastel: Pastel.new,
+                 spinner_factory: method(:default_spinner))
     @github_repo     = github_repo
     @github_token    = github_token
     @days_ago        = days_ago
+    @pr_number       = pr_number
     @pastel          = pastel
     @spinner_factory = spinner_factory
   end
@@ -14,12 +16,18 @@ class FetchPullRequests
     raise ArgumentError, '--github-token is required (or set it via `bin/devtool config`)' if @github_token.blank?
 
     client = Octokit::Client.new(access_token: @github_token)
-    cutoff = @days_ago.days.ago
 
-    spinner = @spinner_factory.call("Fetching open pull requests (last #{@days_ago} days)...")
+    spinner_msg = @pr_number ? "Fetching PR ##{@pr_number}..." : "Fetching open pull requests (last #{@days_ago} days)..."
+    spinner = @spinner_factory.call(spinner_msg)
     spinner.auto_spin
 
-    prs = client.pull_requests(@github_repo, state: 'open').select { |pr| pr.created_at >= cutoff }
+    prs = if @pr_number
+            pr = client.pull_request(@github_repo, @pr_number)
+            [pr]
+          else
+            cutoff = @days_ago.days.ago
+            client.pull_requests(@github_repo, state: 'open').select { |pr| pr.created_at >= cutoff }
+          end
 
     queued  = 0
     skipped = 0
@@ -36,12 +44,12 @@ class FetchPullRequests
       linked_issues_json = fetch_linked_issues(client, pr.body).to_json
 
       PrReview.create!(
-        github_repo:        @github_repo,
-        pr_number:          pr.number,
-        pr_title:           pr.title,
-        pr_body:            pr.body,
-        head_sha:           pr.head.sha,
-        diff_json:          diff_json,
+        github_repo: @github_repo,
+        pr_number: pr.number,
+        pr_title: pr.title,
+        pr_body: pr.body,
+        head_sha: pr.head.sha,
+        diff_json: diff_json,
         linked_issues_json: linked_issues_json
       )
       queued += 1

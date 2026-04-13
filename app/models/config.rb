@@ -16,8 +16,8 @@ class Config < ApplicationRecord
 
   # Returns a hash of { key => value } for the given project.
   def self.project_config(project_name)
-    for_project(project_name).each_with_object({}) do |row, hash|
-      hash[row.key] = row.value
+    for_project(project_name).to_h do |row|
+      [row.key, row.value]
     end
   end
 

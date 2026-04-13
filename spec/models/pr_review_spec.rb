@@ -52,7 +52,8 @@ RSpec.describe PrReview do
     it 'parses comments_json into an array of hashes' do
       comments = [{ path: 'app/foo.rb', line: 5, side: 'RIGHT', body: '[minor] Rename this.' }]
       review = build(:pr_review, comments_json: comments.to_json)
-      expect(review.inline_comments).to eq([{ 'path' => 'app/foo.rb', 'line' => 5, 'side' => 'RIGHT', 'body' => '[minor] Rename this.' }])
+      expect(review.inline_comments).to eq([{ 'path' => 'app/foo.rb', 'line' => 5, 'side' => 'RIGHT',
+                                              'body' => '[minor] Rename this.' }])
     end
 
     it 'returns an empty array when comments_json is blank' do

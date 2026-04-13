@@ -11,8 +11,8 @@ RSpec.describe FetchPullRequests do
 
   subject(:service) do
     described_class.new(
-      github_repo:     github_repo,
-      github_token:    github_token,
+      github_repo: github_repo,
+      github_token: github_token,
       spinner_factory: spinner_factory
     )
   end
@@ -113,7 +113,7 @@ RSpec.describe FetchPullRequests do
     context 'with WIP titles' do
       before { allow(octokit_client).to receive(:pull_requests).and_return([pr]) }
 
-      %w[WIP: [WIP] [wip] wip: Draft: draft: Bump\ ].each do |prefix|
+      ['WIP:', '[WIP]', '[wip]', 'wip:', 'Draft:', 'draft:', 'Bump '].each do |prefix|
         it "skips a PR titled '#{prefix} some work'" do
           allow(octokit_client).to receive(:pull_requests).and_return(
             [pr_double(number: 1, title: "#{prefix} some work", sha: 'abc')]
@@ -130,9 +130,9 @@ RSpec.describe FetchPullRequests do
 
       subject(:service) do
         described_class.new(
-          github_repo:     github_repo,
-          github_token:    github_token,
-          days_ago:        7,
+          github_repo: github_repo,
+          github_token: github_token,
+          days_ago: 7,
           spinner_factory: spinner_factory
         )
       end

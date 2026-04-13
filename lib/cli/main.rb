@@ -87,10 +87,10 @@ module CLI
       end
 
       key_options = {
-        rollbar_token:    options[:rollbar_token],
-        rollbar_account:  options[:rollbar_account],
-        github_token:     options[:github_token],
-        github_repo:      options[:github_repo],
+        rollbar_token: options[:rollbar_token],
+        rollbar_account: options[:rollbar_account],
+        github_token: options[:github_token],
+        github_repo: options[:github_repo],
         local_repository: options[:local_repository]
       }
       has_keys = key_options.values.any?

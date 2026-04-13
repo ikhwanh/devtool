@@ -1,7 +1,7 @@
-Run this Ruby snippet to get all PRs queued for review:
+Run this Ruby snippet to get the PRs queued for review:
 
 ```
-bin/rails runner "puts PrReview.pending_review.to_json"
+bin/rails runner "puts PrReview.pending_review$PR_NUMBER_FILTER.to_json"
 ```
 
 The first argument ($ARGUMENTS) is an optional path to a local repository. If provided, use it to read relevant source files for additional context about conventions and patterns.
@@ -97,5 +97,5 @@ bin/rails runner "PrReview.find(<id>).update!(review_body: '<escaped summary>', 
 After all reviews are written, print a summary:
 
 ```
-bin/rails runner "PrReview.pending_submission.each { |r| puts \"PR ##{r.pr_number} — #{r.pr_title}\" }"
+bin/rails runner "PrReview.pending_submission$PR_NUMBER_FILTER.each { |r| puts \"PR ##{r.pr_number} — #{r.pr_title}\" }"
 ```

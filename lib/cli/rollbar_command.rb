@@ -4,7 +4,7 @@ module CLI
   class RollbarCommand < Thor
     desc 'list', 'List stored Rollbar items'
 
-    method_option :severity, type: :string,  aliases: '-s',
+    method_option :severity, type: :string, aliases: '-s',
                              desc: 'Filter by severity (high/medium/low)'
     method_option :selected, type: :boolean,
                              desc: 'Filter by selected status'

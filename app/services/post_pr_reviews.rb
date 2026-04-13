@@ -3,9 +3,10 @@
 class PostPrReviews
   AI_REVIEWED_LABEL = 'ai-reviewed'
 
-  def initialize(github_repo:, github_token:, pastel: Pastel.new, spinner_factory: method(:default_spinner))
+  def initialize(github_repo:, github_token:, pr_number: nil, pastel: Pastel.new, spinner_factory: method(:default_spinner))
     @github_repo     = github_repo
     @github_token    = github_token
+    @pr_number       = pr_number
     @pastel          = pastel
     @spinner_factory = spinner_factory
   end
@@ -14,6 +15,7 @@ class PostPrReviews
     raise ArgumentError, '--github-token is required (or set it via `bin/devtool config`)' if @github_token.blank?
 
     pending = PrReview.for_repo(@github_repo).pending_submission
+    pending = pending.where(pr_number: @pr_number) if @pr_number
 
     if pending.empty?
       Rails.logger.debug @pastel.yellow('No reviews ready to post.')
@@ -33,8 +35,8 @@ class PostPrReviews
         result = client.create_pull_request_review(
           @github_repo,
           review.pr_number,
-          body:     review.review_body,
-          event:    'COMMENT',
+          body: review.review_body,
+          event: 'COMMENT',
           comments: review.inline_comments
         )
 

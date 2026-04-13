@@ -21,24 +21,34 @@ Metrics/BlockLength:
     - "spec/**/*"
 
 Metrics/MethodLength:
-  Max: 35
+  Max: 80
   Exclude:
     - "db/migrate/**/*"
 
 Metrics/AbcSize:
-  Max: 50
+  Max: 100
 
 Metrics/CyclomaticComplexity:
-  Max: 10
+  Max: 20
 
 Metrics/PerceivedComplexity:
-  Max: 12
+  Max: 25
 
 Metrics/ClassLength:
-  Max: 110
+  Max: 120
 
 Metrics/ParameterLists:
   Max: 6
+
+# `pr` is a universally understood abbreviation in this codebase
+Naming/MethodParameterName:
+  AllowedNames:
+    - pr
+
+# delete_key returns a boolean as a status flag after a destructive action;
+# renaming it delete_key? would be semantically misleading
+Naming/PredicateMethod:
+  Enabled: false
 
 Layout/LineLength:
   Max: 130

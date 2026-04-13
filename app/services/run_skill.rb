@@ -7,12 +7,14 @@ class RunSkill
     @root = root
   end
 
-  def call(skill_file, arguments = '')
+  def call(skill_file, arguments = '', pr_number: nil)
     skill_path = @root.join(skill_file)
     raise ArgumentError, "Skill file not found: #{skill_path}" unless skill_path.exist?
 
     prompt = skill_path.read
     prompt = prompt.gsub('$ARGUMENTS', arguments) if arguments.present?
+    pr_filter = pr_number ? ".where(pr_number: #{pr_number})" : ''
+    prompt = prompt.gsub('$PR_NUMBER_FILTER', pr_filter)
 
     pid = spawn(CLAUDE_CLI, '-p', prompt, '--verbose',
                 chdir: @root.to_s,

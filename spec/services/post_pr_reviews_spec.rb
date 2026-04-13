@@ -13,9 +13,9 @@ RSpec.describe PostPrReviews do
 
   subject(:service) do
     described_class.new(
-      github_repo:     github_repo,
-      github_token:    github_token,
-      pastel:          pastel,
+      github_repo: github_repo,
+      github_token: github_token,
+      pastel: pastel,
       spinner_factory: spinner_factory
     )
   end
@@ -38,8 +38,8 @@ RSpec.describe PostPrReviews do
         expect(octokit_client).to receive(:create_pull_request_review).with(
           github_repo,
           review.pr_number,
-          body:     review.review_body,
-          event:    'COMMENT',
+          body: review.review_body,
+          event: 'COMMENT',
           comments: review.inline_comments
         )
         service.call
