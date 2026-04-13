@@ -7,7 +7,7 @@ module CLI
     method_option :github_repo,      type: :string,  aliases: '--github-repo',
                                      desc: 'GitHub repo in owner/repo format (falls back to config)'
     method_option :github_token,     type: :string,  aliases: '--github-token',
-                                     desc: 'GitHub token (falls back to config)'
+                                     desc: 'GitHub token (falls back to config/GITHUB_TOKEN env var)'
     method_option :local_repository, type: :string,  aliases: '--local-repository',
                                      desc: 'Path to local repo for source-context enrichment'
     method_option :config,           type: :string,  aliases: '-c',
@@ -26,7 +26,7 @@ module CLI
       cfg    = load_project_config(options[:config])
 
       github_repo  = options[:github_repo]      || cfg['github_repo']
-      github_token = options[:github_token]     || cfg['github_token']
+      github_token = options[:github_token]     || cfg['github_token'] || ENV['GITHUB_TOKEN']
       local_repo   = options[:local_repository] || cfg['local_repository']
       pr_id        = options[:id]
 

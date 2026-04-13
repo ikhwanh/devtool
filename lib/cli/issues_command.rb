@@ -20,7 +20,7 @@ module CLI
       cfg    = load_project_config(options[:config])
 
       github_repo  = options[:github_repo]      || cfg['github_repo']
-      github_token = options[:github_token]     || cfg['github_token']
+      github_token = options[:github_token]     || cfg['github_token'] || ENV['GITHUB_TOKEN']
       local_repo   = options[:local_repository] || cfg['local_repository']
 
       unless github_repo
