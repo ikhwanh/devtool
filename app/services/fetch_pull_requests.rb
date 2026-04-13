@@ -33,13 +33,16 @@ class FetchPullRequests
       files = client.pull_request_files(@github_repo, pr.number)
       diff_json = files.map { |f| { filename: f.filename, status: f.status, patch: f.patch } }.to_json
 
+      linked_issues_json = fetch_linked_issues(client, pr.body).to_json
+
       PrReview.create!(
-        github_repo: @github_repo,
-        pr_number:   pr.number,
-        pr_title:    pr.title,
-        pr_body:     pr.body,
-        head_sha:    pr.head.sha,
-        diff_json:   diff_json
+        github_repo:        @github_repo,
+        pr_number:          pr.number,
+        pr_title:           pr.title,
+        pr_body:            pr.body,
+        head_sha:           pr.head.sha,
+        diff_json:          diff_json,
+        linked_issues_json: linked_issues_json
       )
       queued += 1
     end
@@ -57,6 +60,18 @@ class FetchPullRequests
   end
 
   private
+
+  def fetch_linked_issues(client, pr_body)
+    return [] if pr_body.blank?
+
+    issue_numbers = pr_body.scan(/(?:closes?|fixes?|resolves?)\s+#(\d+)/i).flatten.map(&:to_i).uniq
+    issue_numbers.filter_map do |number|
+      issue = client.issue(@github_repo, number)
+      { number: issue.number, title: issue.title, body: issue.body }
+    rescue Octokit::NotFound
+      nil
+    end
+  end
 
   def not_ready_for_review?(pr)
     return true if pr.draft

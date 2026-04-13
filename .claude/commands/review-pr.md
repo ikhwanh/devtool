@@ -11,6 +11,7 @@ For each PR in the result:
 1. **Understand the change**
    - Read `pr_title` and `pr_body` for intent
    - Parse `diff_json` (JSON array of `{ filename, status, patch }`) to see every changed file
+   - Parse `linked_issues_json` (JSON array of `{ number, title, body }`) — these are the GitHub issues this PR claims to fix
 
 2. **Read local source context** (only if a local repository path was provided)
    - For each changed file, try to read the full file from the local repository path
@@ -51,6 +52,11 @@ For each PR in the result:
 
    **Staging requirement** — flag the PR as requiring staging validation if the change affects any of: user-facing flows, payments/reservations, background jobs, data migrations, external integrations, permissions/auth, performance-sensitive paths, or feature flags/rollouts. Explain why.
 
+   **Issue coverage** — if `linked_issues_json` is non-empty, for each linked issue:
+   - Understand the problem described in the issue title and body
+   - Judge whether the diff fully addresses the root cause, only patches a symptom, or misses parts of the issue entirely
+   - Note any acceptance criteria or edge cases mentioned in the issue that the PR does not handle
+
    **Typos** — check for typos in code, comments, and documentation.
 
 4. **Produce the review in two parts:**
@@ -71,6 +77,7 @@ For each PR in the result:
 
    **Part B — Overall summary** in markdown covering:
    - `## Summary` — one paragraph on what the PR does and why
+   - `## Issue Coverage` — only if `linked_issues_json` is non-empty; for each linked issue, one paragraph rating how well the PR addresses it: **Fully addressed**, **Partially addressed**, or **Not addressed**, with a brief explanation. Omit this section if there are no linked issues.
    - `## Staging Required` — yes/no and reason; omit section if not required
    - `## Positives` — what is done well
    - `## Verdict` — one of: **Approve**, **Approve with minor suggestions**, **Request changes**
