@@ -157,7 +157,9 @@ module CLI
 
       # Step 2: Generate digest via Claude
       say pastel.bold("\nStep 2/2 — Generating digest...\n")
-      RunSkill.new.call('.claude/commands/digest.md', tmp_path.to_s)
+      output_file = Rails.root.join('digest', "#{Time.current.strftime('%Y-%m-%d')}.md").to_s
+      RunSkill.new.call('.claude/commands/digest.md', tmp_path.to_s, output_file: output_file)
+      say pastel.dim("\nSaved to #{output_file}\n")
     ensure
       File.delete(tmp_path) if tmp_path && File.exist?(tmp_path)
     end

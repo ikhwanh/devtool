@@ -9,6 +9,15 @@ RSpec.describe FetchRollbar do
 
   subject(:service) { described_class.new(token: token, days_ago: 7, spinner_factory: spinner_factory) }
 
+  def stub_rollbar_project
+    stub_request(:get, %r{api.rollbar.com/api/1/project})
+      .to_return(
+        status: 200,
+        body: { 'err' => 0, 'result' => { 'name' => 'test-project' } }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+  end
+
   def stub_rollbar_items(items)
     response = {
       'err' => 0,
@@ -36,7 +45,10 @@ RSpec.describe FetchRollbar do
         }
       end
 
-      before { stub_rollbar_items([item_data]) }
+      before do
+        stub_rollbar_project
+        stub_rollbar_items([item_data])
+      end
 
       it 'persists items to the database' do
         expect { service.call }.to change(RollbarItem, :count).by(1)
@@ -56,7 +68,10 @@ RSpec.describe FetchRollbar do
     end
 
     context 'with no new items (empty page)' do
-      before { stub_rollbar_items([]) }
+      before do
+        stub_rollbar_project
+        stub_rollbar_items([])
+      end
 
       it 'returns changed: false when db is already up to date' do
         create(:rollbar_item, rollbar_id: 99, last_occurrence_at: 1.day.ago)
@@ -75,6 +90,7 @@ RSpec.describe FetchRollbar do
 
     context 'when rollbar API returns an error' do
       before do
+        stub_rollbar_project
         stub_request(:get, %r{api.rollbar.com/api/1/items})
           .to_return(status: 500, body: 'Internal Server Error')
       end

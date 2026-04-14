@@ -30,6 +30,10 @@
 
 /public/assets
 
+# Digest output files
+/digest/*
+!/digest/.keep
+
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 

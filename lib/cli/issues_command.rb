@@ -47,6 +47,49 @@ module CLI
       CreateIssues.new(github_repo: github_repo, github_token: github_token).call
     end
 
+    # ──────────────────────────────────────────────────────────────────────────
+
+    desc 'resolve', 'Resolve Rollbar items whose linked GitHub issues are closed'
+
+    method_option :rollbar_token, type: :string, aliases: '--rollbar-token',
+                                  desc: 'Rollbar API write token (falls back to config/ROLLBAR_TOKEN env var)'
+    method_option :github_repo,   type: :string, aliases: '--github-repo',
+                                  desc: 'GitHub repo in owner/repo format (falls back to config/GITHUB_REPO env var)'
+    method_option :github_token,  type: :string, aliases: '--github-token',
+                                  desc: 'GitHub token (falls back to config/GITHUB_TOKEN env var)'
+    method_option :config,        type: :string, aliases: '-c',
+                                  desc: 'Project config to use (defaults to the project marked as default)'
+    method_option :dry_run,       type: :boolean, default: false, aliases: '--dry-run',
+                                  desc: 'Preview which items would be resolved without making any changes'
+
+    def resolve
+      pastel = Pastel.new
+      cfg    = load_project_config(options[:config])
+
+      rollbar_token = options[:rollbar_token] || cfg['rollbar_token']
+      github_repo   = options[:github_repo]   || cfg['github_repo']
+      github_token  = options[:github_token]  || cfg['github_token'] || ENV['GITHUB_TOKEN']
+
+      unless github_repo
+        say pastel.red('Error: --github-repo is required (or set it via `bin/devtool config`)')
+        exit 1
+      end
+
+      say pastel.bold("\nRollbar Issue Resolver#{options[:dry_run] ? pastel.yellow(' [dry-run]') : ''}\n")
+      say pastel.dim("  config:      #{options[:config] || Config.default_project || '(none)'}")
+      say pastel.dim("  github-repo: #{github_repo}")
+      say ''
+
+      result = ResolveRollbarItems.new(
+        github_repo:   github_repo,
+        github_token:  github_token,
+        rollbar_token: rollbar_token,
+        dry_run:       options[:dry_run]
+      ).call
+
+      say pastel.bold.green("\n#{result[:resolved]} item(s) resolved, #{result[:skipped]} skipped.\n")
+    end
+
     private
 
     def load_project_config(project_name)
