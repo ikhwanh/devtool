@@ -40,7 +40,7 @@ module CLI
         say pastel.bold("\nStep 1/2 — Skipping issue generation (--skip-generate)\n")
       else
         say pastel.bold("\nStep 1/2 — Generating issue content...\n")
-        RunSkill.new.call('.claude/commands/generate-issues.md', local_repo || '', config: config_name)
+        RunSkill.new.call('.claude/commands/generate-issues.md', config_name)
       end
 
       # Step 2: Create GitHub issues

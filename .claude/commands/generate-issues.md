@@ -1,10 +1,12 @@
+The first argument ($ARGUMENTS) is the project config name (e.g. `hotelzero-web`).
+
 Run this Ruby snippet to get the selected Rollbar items that don't already have a GitHub issue:
 
 ```
 bin/rails runner "
-  cfg = Config.project_config('$CONFIG')
+  cfg = Config.project_config('$ARGUMENTS')
   rollbar_account = cfg['rollbar_account']
-  items = RollbarItem.for_config('$CONFIG').selected.reject(&:submitted_to_github?).map do |item|
+  items = RollbarItem.for_config('$ARGUMENTS').selected.reject(&:submitted_to_github?).map do |item|
     item.as_json.merge(
       rollbar_url: \"https://app.rollbar.com/a/#{rollbar_account}/fix/item/#{item.project}/#{item.rollbar_id}#detail\"
     )
@@ -13,11 +15,11 @@ bin/rails runner "
 "
 ```
 
-The first argument ($ARGUMENTS) is an optional path to a local repository (e.g. `../myapp`). If provided, use it to find source files mentioned in stack traces for deeper fix suggestions.
+If `cfg['local_repository']` is present, use it to find source files mentioned in stack traces for deeper fix suggestions.
 
 For each item:
 
-1. **Find relevant source files** (only if a local repository path was provided):
+1. **Find relevant source files** (only if `cfg['local_repository']` is set):
    - Parse file paths from the stack trace in `occurrence_data` (look for patterns like `(src/foo/bar.rb:42)`)
    - Try to find those files relative to the local repository path
    - Read up to 5 files, truncate each to ~150 lines if large
@@ -38,7 +40,7 @@ For each item:
 bin/rails runner "
   GithubIssue.create!(
     rollbar_item: RollbarItem.find_by(rollbar_id: <rollbar_id>),
-    config: '$CONFIG',
+    config: '$ARGUMENTS',
     title: '<title>',
     body: '<markdown body>',
     labels: ['bug', 'rollbar', 'severity:<severity>'].to_json
@@ -51,5 +53,5 @@ Do not create a new GithubIssue for any RollbarItem that already has one with a 
 After writing all issues, run this to list each generated issue title:
 
 ```
-bin/rails runner "GithubIssue.for_config('$CONFIG').pending_submission.each { |i| puts i.title }"
+bin/rails runner "GithubIssue.for_config('$ARGUMENTS').pending_submission.each { |i| puts i.title }"
 ```

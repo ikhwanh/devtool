@@ -37,7 +37,7 @@ class RunSkill
     else
       pid = spawn(CLAUDE_CLI, '-p', prompt, '--verbose',
                   chdir: @root.to_s,
-                  in: :in, out: :out, err: :err)
+                  in: '/dev/null', out: :out, err: :err)
       _, status = Process.wait2(pid)
       raise "claude exited with code #{status.exitstatus}" unless status.success?
     end
