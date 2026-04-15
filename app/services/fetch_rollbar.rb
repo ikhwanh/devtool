@@ -8,9 +8,10 @@ class FetchRollbar
   ROLLBAR_API = 'https://api.rollbar.com/api/1'
   MAX_PAGES = 20
 
-  def initialize(token:, days_ago: 7, pastel: Pastel.new, spinner_factory: method(:default_spinner))
+  def initialize(token:, days_ago: 7, config: nil, pastel: Pastel.new, spinner_factory: method(:default_spinner))
     @token = token
     @days_ago = days_ago
+    @config = config
     @pastel = pastel
     @spinner_factory = spinner_factory
   end
@@ -83,15 +84,16 @@ class FetchRollbar
         environment: raw['environment'],
         total_occurrences: raw['total_occurrences'],
         last_occurrence_at: Time.zone.at(raw['last_occurrence_timestamp']),
-        project: @rollbar_project
+        project: @rollbar_project,
+        config: @config
       )
 
       changed = true if record.new_record? || old_ts != raw['last_occurrence_timestamp']
       record.save!
     end
 
-    # Trim records outside the current window
-    RollbarItem.where(last_occurrence_at: ...cutoff).destroy_all
+    # Trim records outside the current window (scoped to this config)
+    RollbarItem.for_config(@config).where(last_occurrence_at: ...cutoff).destroy_all
 
     changed
   end

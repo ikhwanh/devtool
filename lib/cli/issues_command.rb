@@ -22,6 +22,7 @@ module CLI
       github_repo  = options[:github_repo]      || cfg['github_repo']
       github_token = options[:github_token]     || cfg['github_token'] || ENV['GITHUB_TOKEN']
       local_repo   = options[:local_repository] || cfg['local_repository']
+      config_name  = options[:config] || Config.default_project
 
       unless github_repo
         say pastel.red('Error: --github-repo is required (or set it via `bin/devtool config`)')
@@ -29,7 +30,7 @@ module CLI
       end
 
       say pastel.bold("\nGitHub Issue Creator\n")
-      say pastel.dim("  config:      #{options[:config] || Config.default_project || '(none)'}")
+      say pastel.dim("  config:      #{config_name || '(none)'}")
       say pastel.dim("  github-repo: #{github_repo}")
       say pastel.dim("  local-repo:  #{local_repo}") if local_repo
       say ''
@@ -39,12 +40,12 @@ module CLI
         say pastel.bold("\nStep 1/2 — Skipping issue generation (--skip-generate)\n")
       else
         say pastel.bold("\nStep 1/2 — Generating issue content...\n")
-        RunSkill.new.call('.claude/commands/generate-issues.md', local_repo || '')
+        RunSkill.new.call('.claude/commands/generate-issues.md', local_repo || '', config: config_name)
       end
 
       # Step 2: Create GitHub issues
       say pastel.bold("\nStep 2/2 — Creating GitHub issues...\n")
-      CreateIssues.new(github_repo: github_repo, github_token: github_token).call
+      CreateIssues.new(github_repo: github_repo, github_token: github_token, config: config_name).call
     end
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -69,6 +70,7 @@ module CLI
       rollbar_token = options[:rollbar_token] || cfg['rollbar_token']
       github_repo   = options[:github_repo]   || cfg['github_repo']
       github_token  = options[:github_token]  || cfg['github_token'] || ENV['GITHUB_TOKEN']
+      config_name   = options[:config] || Config.default_project
 
       unless github_repo
         say pastel.red('Error: --github-repo is required (or set it via `bin/devtool config`)')
@@ -76,7 +78,7 @@ module CLI
       end
 
       say pastel.bold("\nRollbar Issue Resolver#{options[:dry_run] ? pastel.yellow(' [dry-run]') : ''}\n")
-      say pastel.dim("  config:      #{options[:config] || Config.default_project || '(none)'}")
+      say pastel.dim("  config:      #{config_name || '(none)'}")
       say pastel.dim("  github-repo: #{github_repo}")
       say ''
 
@@ -84,6 +86,7 @@ module CLI
         github_repo:   github_repo,
         github_token:  github_token,
         rollbar_token: rollbar_token,
+        config:        config_name,
         dry_run:       options[:dry_run]
       ).call
 

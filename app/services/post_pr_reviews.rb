@@ -3,10 +3,12 @@
 class PostPrReviews
   AI_REVIEWED_LABEL = 'ai-reviewed'
 
-  def initialize(github_repo:, github_token:, pr_number: nil, pastel: Pastel.new, spinner_factory: method(:default_spinner))
+  def initialize(github_repo:, github_token:, pr_number: nil, config: nil, pastel: Pastel.new,
+                 spinner_factory: method(:default_spinner))
     @github_repo     = github_repo
     @github_token    = github_token
     @pr_number       = pr_number
+    @config          = config
     @pastel          = pastel
     @spinner_factory = spinner_factory
   end
@@ -14,7 +16,7 @@ class PostPrReviews
   def call
     raise ArgumentError, '--github-token is required (or set it via `bin/devtool config`)' if @github_token.blank?
 
-    pending = PrReview.for_repo(@github_repo).pending_submission
+    pending = PrReview.for_repo(@github_repo).for_config(@config).pending_submission
     pending = pending.where(pr_number: @pr_number) if @pr_number
 
     if pending.empty?

@@ -8,6 +8,7 @@ class PrReview < ApplicationRecord
   validates :head_sha,    presence: true,
                           uniqueness: { scope: %i[github_repo pr_number] }
 
+  scope :for_config,         ->(c) { c ? where(config: c) : all }
   scope :pending_review,     -> { where(review_body: nil) }
   scope :pending_submission, -> { where.not(review_body: nil).where(review_url: nil) }
   scope :submitted,          -> { where.not(review_url: nil) }

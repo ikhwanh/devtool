@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 class FetchPullRequests
-  def initialize(github_repo:, github_token:, days_ago: 7, pr_number: nil, pastel: Pastel.new,
+  def initialize(github_repo:, github_token:, days_ago: 7, pr_number: nil, config: nil, pastel: Pastel.new,
                  spinner_factory: method(:default_spinner))
     @github_repo     = github_repo
     @github_token    = github_token
     @days_ago        = days_ago
     @pr_number       = pr_number
+    @config          = config
     @pastel          = pastel
     @spinner_factory = spinner_factory
   end
@@ -45,6 +46,7 @@ class FetchPullRequests
 
       PrReview.create!(
         github_repo: @github_repo,
+        config: @config,
         pr_number: pr.number,
         pr_title: pr.title,
         pr_body: pr.body,
@@ -55,8 +57,8 @@ class FetchPullRequests
       queued += 1
     end
 
-    # Trim old submitted reviews
-    PrReview.for_repo(@github_repo).submitted.older_than(PrReview::RETENTION_PERIOD).destroy_all
+    # Trim old submitted reviews (scoped to this config)
+    PrReview.for_repo(@github_repo).for_config(@config).submitted.older_than(PrReview::RETENTION_PERIOD).destroy_all
 
     msg = "#{prs.size} open PR(s) found, #{queued} queued for review"
     msg += ", #{skipped} skipped (draft/WIP)" if skipped.positive?

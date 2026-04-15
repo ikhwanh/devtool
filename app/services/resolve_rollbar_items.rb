@@ -7,11 +7,12 @@ require 'json'
 class ResolveRollbarItems
   ROLLBAR_API = 'https://api.rollbar.com/api/1'
 
-  def initialize(github_repo:, github_token:, rollbar_token:, dry_run: false,
+  def initialize(github_repo:, github_token:, rollbar_token:, config: nil, dry_run: false,
                  pastel: Pastel.new, spinner_factory: method(:default_spinner))
     @github_repo     = github_repo
     @github_token    = github_token
     @rollbar_token   = rollbar_token
+    @config          = config
     @dry_run         = dry_run
     @pastel          = pastel
     @spinner_factory = spinner_factory
@@ -27,7 +28,7 @@ class ResolveRollbarItems
 
     client = Octokit::Client.new(access_token: @github_token)
 
-    submitted = GithubIssue.submitted.includes(:rollbar_item)
+    submitted = GithubIssue.for_config(@config).submitted.includes(:rollbar_item)
 
     if submitted.empty?
       Rails.logger.debug @pastel.yellow('No submitted GitHub issues found.')

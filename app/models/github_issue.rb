@@ -5,9 +5,10 @@ class GithubIssue < ApplicationRecord
 
   validates :title, presence: true
 
+  scope :for_config,         ->(c) { c ? where(config: c) : all }
   scope :pending_submission, -> { where(github_issue_url: nil) }
-  scope :submitted, -> { where.not(github_issue_url: nil) }
-  scope :older_than, ->(duration) { where(submitted_at: ...(Time.current - duration)) }
+  scope :submitted,          -> { where.not(github_issue_url: nil) }
+  scope :older_than,         ->(duration) { where(submitted_at: ...(Time.current - duration)) }
 
   def labels
     raw = self[:labels]

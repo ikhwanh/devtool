@@ -9,14 +9,17 @@ class RunSkill
     @root = root
   end
 
-  def call(skill_file, arguments = '', pr_number: nil, output_file: nil)
+  def call(skill_file, arguments = '', pr_number: nil, config: nil, output_file: nil)
     skill_path = @root.join(skill_file)
     raise ArgumentError, "Skill file not found: #{skill_path}" unless skill_path.exist?
 
     prompt = skill_path.read
     prompt = prompt.gsub('$ARGUMENTS', arguments) if arguments.present?
-    pr_filter = pr_number ? ".where(pr_number: #{pr_number})" : ''
+    pr_filter     = pr_number ? ".where(pr_number: #{pr_number})" : ''
+    config_filter = config    ? ".where(config: '#{config}')"     : ''
     prompt = prompt.gsub('$PR_NUMBER_FILTER', pr_filter)
+    prompt = prompt.gsub('$CONFIG_FILTER', config_filter)
+    prompt = prompt.gsub('$CONFIG', config.to_s)
 
     if output_file
       FileUtils.mkdir_p(File.dirname(output_file))

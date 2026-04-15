@@ -2,9 +2,9 @@ Run this Ruby snippet to get the selected Rollbar items that don't already have 
 
 ```
 bin/rails runner "
-  cfg = Config.project_config(Config.default_project)
+  cfg = Config.project_config('$CONFIG')
   rollbar_account = cfg['rollbar_account']
-  items = RollbarItem.selected.reject(&:submitted_to_github?).map do |item|
+  items = RollbarItem.for_config('$CONFIG').selected.reject(&:submitted_to_github?).map do |item|
     item.as_json.merge(
       rollbar_url: \"https://app.rollbar.com/a/#{rollbar_account}/fix/item/#{item.project}/#{item.rollbar_id}#detail\"
     )
@@ -38,6 +38,7 @@ For each item:
 bin/rails runner "
   GithubIssue.create!(
     rollbar_item: RollbarItem.find_by(rollbar_id: <rollbar_id>),
+    config: '$CONFIG',
     title: '<title>',
     body: '<markdown body>',
     labels: ['bug', 'rollbar', 'severity:<severity>'].to_json
@@ -50,5 +51,5 @@ Do not create a new GithubIssue for any RollbarItem that already has one with a 
 After writing all issues, run this to list each generated issue title:
 
 ```
-bin/rails runner "GithubIssue.pending_submission.each { |i| puts i.title }"
+bin/rails runner "GithubIssue.for_config('$CONFIG').pending_submission.each { |i| puts i.title }"
 ```

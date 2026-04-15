@@ -12,6 +12,8 @@ module CLI
                              desc: 'Filter by environment'
     method_option :limit,    type: :numeric, default: 50, aliases: '-n',
                              desc: 'Maximum number of items to display'
+    method_option :config,   type: :string,  aliases: '-c',
+                             desc: 'Project config to use (defaults to the project marked as default)'
 
     def list
       pastel   = Pastel.new
@@ -22,7 +24,9 @@ module CLI
         exit 1
       end
 
-      scope = RollbarItem.recent_first
+      config_name = options[:config] || Config.default_project
+
+      scope = RollbarItem.for_config(config_name).recent_first
       scope = scope.with_severity(severity)                unless severity.nil?
       scope = scope.where(selected: options[:selected])    unless options[:selected].nil?
       scope = scope.where(environment: options[:env])      if options[:env]
@@ -85,9 +89,10 @@ module CLI
 
       cfg           = load_project_config(options[:config])
       rollbar_token = options[:rollbar_token] || cfg['rollbar_token']
+      config_name   = options[:config] || Config.default_project
 
       say pastel.bold("\nRollbar Issue Analyzer\n")
-      say pastel.dim("  config:     #{options[:config] || Config.default_project || '(none)'}")
+      say pastel.dim("  config:     #{config_name || '(none)'}")
       say pastel.dim("  days-ago:   #{options[:days_ago]}")
       say pastel.dim("  autoselect: #{options[:autoselect]}")
       say pastel.dim("  severity:   #{severity}") if severity
@@ -95,7 +100,7 @@ module CLI
 
       # Step 1: Fetch
       say pastel.bold("\nStep 1/3 — Fetch Rollbar items...\n")
-      result = FetchRollbar.new(token: rollbar_token, days_ago: options[:days_ago]).call
+      result = FetchRollbar.new(token: rollbar_token, days_ago: options[:days_ago], config: config_name).call
 
       unless result[:changed]
         say pastel.yellow("No new or updated items since last run. Skipping.\n")
@@ -104,14 +109,15 @@ module CLI
 
       # Step 2: Tag severity via Claude
       say pastel.bold("\nStep 2/3 — Tagging severity...\n")
-      RunSkill.new.call('.claude/commands/tag-severity.md')
+      RunSkill.new.call('.claude/commands/tag-severity.md', config: config_name)
 
       # Step 3: Select items
       say pastel.bold("\nStep 3/3 — Selecting items...\n")
       SelectItems.new(
         token: rollbar_token,
         autoselect: options[:autoselect],
-        severity: severity
+        severity: severity,
+        config: config_name
       ).call
     end
 

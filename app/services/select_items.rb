@@ -7,18 +7,19 @@ require 'json'
 class SelectItems
   SEVERITY_COLORS = { 'high' => :red, 'medium' => :yellow, 'low' => :cyan }.freeze
 
-  def initialize(token: nil, autoselect: false, severity: nil, pastel: Pastel.new,
+  def initialize(token: nil, autoselect: false, severity: nil, config: nil, pastel: Pastel.new,
                  prompt: TTY::Prompt.new, spinner_factory: method(:default_spinner))
     @token = token
     @autoselect = autoselect
     @severity = severity
+    @config = config
     @pastel = pastel
     @prompt = prompt
     @spinner_factory = spinner_factory
   end
 
   def call
-    items = RollbarItem.where.not(severity: nil).recent_first.to_a
+    items = RollbarItem.for_config(@config).where.not(severity: nil).recent_first.to_a
     display_items(items)
     selected = choose_items(items)
 
@@ -26,7 +27,7 @@ class SelectItems
     selected = enrich_with_occurrences(selected) if @token.present?
 
     RollbarItem.transaction do
-      RollbarItem.update_all(selected: false)
+      RollbarItem.for_config(@config).update_all(selected: false)
       RollbarItem.where(id: selected.map(&:id)).update_all(selected: true)
     end
   end

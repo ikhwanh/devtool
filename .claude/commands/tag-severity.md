@@ -1,7 +1,7 @@
 Run this Ruby snippet inside the Rails app to get all untagged Rollbar items:
 
 ```
-bin/rails runner "puts RollbarItem.where(severity: nil).to_json"
+bin/rails runner "puts RollbarItem.where(severity: nil)$CONFIG_FILTER.to_json"
 ```
 
 Tag each item with a severity level using these criteria:
@@ -19,7 +19,7 @@ After updating all items, run this to display a summary table with columns: #, S
 
 ```
 bin/rails runner "
-  items = RollbarItem.where.not(severity: nil).order(Arel.sql(\"CASE severity WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END, total_occurrences DESC\"))
+  items = RollbarItem.where.not(severity: nil)$CONFIG_FILTER.order(Arel.sql(\"CASE severity WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END, total_occurrences DESC\"))
   puts ['#', 'Severity', 'Title', 'Occurrences', 'Last Seen'].join(' | ')
   items.each_with_index do |item, i|
     puts [i+1, item.severity, item.title.truncate(70), item.total_occurrences, item.last_occurrence_at&.strftime('%Y-%m-%d')].join(' | ')

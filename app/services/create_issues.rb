@@ -3,9 +3,11 @@
 class CreateIssues
   RETENTION_PERIOD = 30.days
 
-  def initialize(github_repo:, github_token: nil, pastel: Pastel.new, spinner_factory: method(:default_spinner))
+  def initialize(github_repo:, github_token: nil, config: nil, pastel: Pastel.new,
+                 spinner_factory: method(:default_spinner))
     @github_repo = github_repo
     @github_token = github_token
+    @config = config
     @pastel = pastel
     @spinner_factory = spinner_factory
   end
@@ -16,10 +18,10 @@ class CreateIssues
     owner, repo = @github_repo.split('/')
     raise ArgumentError, "Invalid --github-repo \"#{@github_repo}\". Expected format: owner/repo" unless owner && repo
 
-    # Trim old submitted issues on every run
-    GithubIssue.submitted.older_than(RETENTION_PERIOD).destroy_all
+    # Trim old submitted issues on every run (scoped to this config)
+    GithubIssue.for_config(@config).submitted.older_than(RETENTION_PERIOD).destroy_all
 
-    pending = GithubIssue.pending_submission.includes(:rollbar_item)
+    pending = GithubIssue.for_config(@config).pending_submission.includes(:rollbar_item)
 
     if pending.empty?
       Rails.logger.debug @pastel.yellow('No new issues to create (all already submitted to GitHub).')

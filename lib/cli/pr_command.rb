@@ -29,6 +29,7 @@ module CLI
       github_token = options[:github_token]     || cfg['github_token'] || ENV['GITHUB_TOKEN']
       local_repo   = options[:local_repository] || cfg['local_repository']
       pr_id        = options[:id]
+      config_name  = options[:config] || Config.default_project
 
       unless github_repo
         say pastel.red('Error: --github-repo is required (or set it via `bin/devtool config`)')
@@ -41,7 +42,7 @@ module CLI
       end
 
       say pastel.bold("\nPR Reviewer\n")
-      say pastel.dim("  config:      #{options[:config] || Config.default_project || '(none)'}")
+      say pastel.dim("  config:      #{config_name || '(none)'}")
       say pastel.dim("  github-repo: #{github_repo}")
       say pastel.dim("  days-ago:    #{options[:days_ago]}")
       say pastel.dim("  pr-id:       #{pr_id}") if pr_id
@@ -50,16 +51,16 @@ module CLI
 
       # --force: wipe existing records for this PR so it goes through the full pipeline again
       if options[:force]
-        destroyed = PrReview.for_repo(github_repo).where(pr_number: pr_id).destroy_all
+        destroyed = PrReview.for_repo(github_repo).for_config(config_name).where(pr_number: pr_id).destroy_all
         say pastel.yellow("  Cleared #{destroyed.size} existing review(s) for PR ##{pr_id}\n") if destroyed.any?
       end
 
       # Step 1: Fetch open PRs and queue new ones for review
       say pastel.bold("\nStep 1/3 — Fetching open pull requests...\n")
       FetchPullRequests.new(github_repo: github_repo, github_token: github_token, days_ago: options[:days_ago],
-                            pr_number: pr_id).call
+                            pr_number: pr_id, config: config_name).call
 
-      scope                   = PrReview.for_repo(github_repo)
+      scope                   = PrReview.for_repo(github_repo).for_config(config_name)
       scope                   = scope.where(pr_number: pr_id) if pr_id
       has_pending_review      = scope.pending_review.exists?
       has_pending_submission  = scope.pending_submission.exists?
@@ -72,7 +73,7 @@ module CLI
       # Step 2: Review via Claude (only if there are unreviewed PRs)
       if has_pending_review
         say pastel.bold("\nStep 2/3 — Reviewing pull requests...\n")
-        RunSkill.new.call('.claude/commands/review-pr.md', local_repo.to_s, pr_number: pr_id)
+        RunSkill.new.call('.claude/commands/review-pr.md', local_repo.to_s, pr_number: pr_id, config: config_name)
       else
         say pastel.bold("\nStep 2/3 — Skipping (no unreviewed PRs)\n")
       end
@@ -82,7 +83,8 @@ module CLI
         say pastel.bold("\nStep 3/3 — Skipping post (--skip-post)\n")
       else
         say pastel.bold("\nStep 3/3 — Posting reviews to GitHub...\n")
-        PostPrReviews.new(github_repo: github_repo, github_token: github_token, pr_number: pr_id).call
+        PostPrReviews.new(github_repo: github_repo, github_token: github_token, pr_number: pr_id,
+                          config: config_name).call
       end
     end
 

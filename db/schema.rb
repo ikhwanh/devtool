@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_041702) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_15_000001) do
   create_table "configs", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.boolean "is_default", default: false, null: false
@@ -24,20 +24,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_041702) do
 
   create_table "github_issues", force: :cascade do |t|
     t.text "body"
+    t.string "config", null: false
     t.datetime "created_at", null: false
     t.integer "github_issue_number"
     t.string "github_issue_url"
+    t.string "github_repo"
     t.text "labels"
     t.integer "rollbar_item_id", null: false
     t.datetime "submitted_at"
     t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.index ["config"], name: "index_github_issues_on_config"
     t.index ["github_issue_url"], name: "index_github_issues_on_github_issue_url"
+    t.index ["github_repo"], name: "index_github_issues_on_github_repo"
     t.index ["rollbar_item_id"], name: "index_github_issues_on_rollbar_item_id"
   end
 
   create_table "pr_reviews", force: :cascade do |t|
     t.text "comments_json"
+    t.string "config", null: false
     t.datetime "created_at", null: false
     t.text "diff_json"
     t.string "github_repo", null: false
@@ -50,10 +55,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_041702) do
     t.string "review_url"
     t.datetime "submitted_at"
     t.datetime "updated_at", null: false
+    t.index ["config"], name: "index_pr_reviews_on_config"
     t.index ["github_repo", "pr_number", "head_sha"], name: "index_pr_reviews_on_github_repo_and_pr_number_and_head_sha", unique: true
   end
 
   create_table "rollbar_items", force: :cascade do |t|
+    t.string "config", null: false
     t.datetime "created_at", null: false
     t.string "environment"
     t.datetime "last_occurrence_at"
@@ -65,6 +72,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_041702) do
     t.string "title", null: false
     t.integer "total_occurrences", default: 0
     t.datetime "updated_at", null: false
+    t.index ["config"], name: "index_rollbar_items_on_config"
     t.index ["rollbar_id"], name: "index_rollbar_items_on_rollbar_id", unique: true
     t.index ["selected"], name: "index_rollbar_items_on_selected"
     t.index ["severity"], name: "index_rollbar_items_on_severity"
