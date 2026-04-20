@@ -68,35 +68,8 @@ module CLI
                                      desc: 'Only review this PR number'
     method_option :force,            type: :boolean, default: false, aliases: '--force',
                                      desc: 'Force re-review even if already reviewed (requires --id)'
-    method_option :all,              type: :boolean, default: false, aliases: '--all',
-                                     desc: 'Fetch and review PRs for all configured projects'
 
     def review
-      if options[:all]
-        pastel = Pastel.new
-        say pastel.bold("\nPR Review — All Projects\n")
-        Config.all.group_by(&:project).each_key do |project_name|
-          cfg          = Config.project_config(project_name)
-          github_repo  = cfg['github_repo']
-          github_token = cfg['github_token'] || ENV.fetch('GITHUB_TOKEN', nil)
-
-          unless github_repo
-            say pastel.dim("[#{project_name}] Skipping — no github_repo configured")
-            next
-          end
-
-          say pastel.bold("\n[#{project_name}] Fetching PRs...")
-          result = FetchPullRequests.new(github_repo: github_repo, github_token: github_token, config: project_name).call
-
-          if result[:changed]
-            system("bin/devtool pr review --config #{Shellwords.escape(project_name)}")
-          else
-            say pastel.dim("[#{project_name}] No new PRs")
-          end
-        end
-        return
-      end
-
       pastel = Pastel.new
       cfg    = load_project_config(options[:config])
 

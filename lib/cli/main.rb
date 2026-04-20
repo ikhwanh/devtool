@@ -158,11 +158,11 @@ module CLI
           pr_lines << "  #{project_name}: #{count} PR(s)" if count.positive?
         end
 
-        next if rollbar_token.blank?
-
-        FetchRollbar.new(token: rollbar_token, config: project_name).call
-        count = RollbarItem.for_config(project_name).unselected.count
-        rollbar_lines << "  #{project_name}: #{count} item(s)" if count.positive?
+        if rollbar_token.present?
+          FetchRollbar.new(token: rollbar_token, config: project_name).call
+          count = RollbarItem.for_config(project_name).unselected.count
+          rollbar_lines << "  #{project_name}: #{count} item(s)" if count.positive?
+        end
       end
 
       if pr_lines.empty? && rollbar_lines.empty?
@@ -176,6 +176,32 @@ module CLI
         lines.concat(rollbar_lines)
         File.write(pending_file, "#{lines.join("\n")}\n")
         say pastel.green("Pending summary written to #{pending_file}\n")
+      end
+    end
+
+    # ── work ───────────────────────────────────────────────────────────────────
+
+    desc 'work', 'Review pending PRs and create Rollbar issues for all projects'
+    def work
+      pastel = Pastel.new
+      say pastel.bold("\nWork — All Projects\n")
+
+      Config.all.group_by(&:project).each_key do |project_name|
+        cfg           = Config.project_config(project_name)
+        github_repo   = cfg['github_repo']
+        rollbar_token = cfg['rollbar_token']
+
+        if github_repo
+          system("bin/devtool pr review --config #{Shellwords.escape(project_name)}")
+        else
+          say pastel.dim("[#{project_name}] Skipping PR review — no github_repo configured")
+        end
+
+        if rollbar_token
+          system("bin/devtool issues create --config #{Shellwords.escape(project_name)} --autoselect")
+        else
+          say pastel.dim("[#{project_name}] Skipping issue creation — no rollbar_token configured")
+        end
       end
     end
 

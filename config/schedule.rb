@@ -9,6 +9,6 @@ set :output, 'log/cron.log'
 set :environment, ENV.fetch('RAILS_ENV', 'development')
 
 every 1.hour do
-  command 'bin/devtool pr review --all'
-  command 'bin/devtool issues create --all'
+  command 'bin/devtool sync'
+  command 'bin/devtool work'
 end

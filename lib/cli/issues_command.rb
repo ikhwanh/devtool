@@ -20,34 +20,8 @@ module CLI
                                      desc: 'GitHub token (falls back to config/GITHUB_TOKEN env var)'
     method_option :config,           type: :string,                  aliases: '-c',
                                      desc: 'Project config to use (defaults to the project marked as default)'
-    method_option :all,              type: :boolean, default: false, aliases: '--all',
-                                     desc: 'Fetch Rollbar items and create issues for all configured projects'
 
     def create
-      if options[:all]
-        pastel = Pastel.new
-        say pastel.bold("\nIssues Create — All Projects\n")
-        Config.all.group_by(&:project).each_key do |project_name|
-          cfg           = Config.project_config(project_name)
-          rollbar_token = cfg['rollbar_token']
-
-          unless rollbar_token
-            say pastel.dim("[#{project_name}] Skipping — no rollbar_token configured")
-            next
-          end
-
-          say pastel.bold("\n[#{project_name}] Fetching Rollbar items...")
-          result = FetchRollbar.new(token: rollbar_token, config: project_name).call
-
-          if result[:changed]
-            system("bin/devtool issues create --config #{Shellwords.escape(project_name)} --autoselect")
-          else
-            say pastel.dim("[#{project_name}] No new Rollbar items")
-          end
-        end
-        return
-      end
-
       pastel = Pastel.new
       cfg    = load_project_config(options[:config])
 
