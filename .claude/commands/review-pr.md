@@ -43,7 +43,7 @@ For each PR in the result:
    - Highlight untested branches
    - Flag logic that is hard to test
 
-   **Staging requirement** — flag the PR as requiring staging validation if the change affects any of: user-facing flows, payments/reservations, background jobs, data migrations, external integrations, permissions/auth, performance-sensitive paths, or feature flags/rollouts. Explain why.
+   **Staging requirement** — flag the PR as requiring staging validation if the change affects any of: payments/reservations, data migrations, external integrations, permissions/auth. Explain why.
 
    **Issue coverage** — if `linked_issues_json` is non-empty, for each linked issue:
    - Understand the problem described in the issue title and body
