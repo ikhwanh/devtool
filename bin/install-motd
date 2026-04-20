@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SNIPPET_MARKER="# devtool-motd"
+SNIPPET=$(cat <<'EOF'
+# devtool-motd
+DEVTOOL_PENDING="$HOME/work/devtool/tmp/devtool_pending"
+[ -f "$DEVTOOL_PENDING" ] && echo && cat "$DEVTOOL_PENDING" && echo
+EOF
+)
+
+install_into() {
+  local rc_file="$1"
+
+  if [ ! -f "$rc_file" ]; then
+    return
+  fi
+
+  if grep -qF "$SNIPPET_MARKER" "$rc_file"; then
+    echo "  $rc_file — already installed, skipping"
+  else
+    printf '\n%s\n' "$SNIPPET" >> "$rc_file"
+    echo "  $rc_file — installed"
+  fi
+}
+
+echo "Installing devtool terminal summary..."
+install_into "$HOME/.zshrc"
+install_into "$HOME/.bashrc"
+echo "Done. Open a new terminal to see the summary."
