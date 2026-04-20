@@ -58,8 +58,6 @@ module CLI
                                      desc: 'GitHub repo in owner/repo format (falls back to config)'
     method_option :github_token,     type: :string,  aliases: '--github-token',
                                      desc: 'GitHub token (falls back to config/GITHUB_TOKEN env var)'
-    method_option :local_repository, type: :string,  aliases: '--local-repository',
-                                     desc: 'Path to local repo for source-context enrichment'
     method_option :config,           type: :string,  aliases: '-c',
                                      desc: 'Project config to use (defaults to the project marked as default)'
     method_option :skip_post,        type: :boolean, default: false, aliases: '--skip-post',
@@ -73,9 +71,8 @@ module CLI
       pastel = Pastel.new
       cfg    = load_project_config(options[:config])
 
-      github_repo  = options[:github_repo]      || cfg['github_repo']
-      github_token = options[:github_token]     || cfg['github_token'] || ENV.fetch('GITHUB_TOKEN', nil)
-      local_repo   = options[:local_repository] || cfg['local_repository']
+      github_repo  = options[:github_repo]  || cfg['github_repo']
+      github_token = options[:github_token] || cfg['github_token'] || ENV.fetch('GITHUB_TOKEN', nil)
       pr_id        = options[:id]
       config_name  = options[:config] || Config.default_project
 
@@ -93,7 +90,6 @@ module CLI
       say pastel.dim("  config:      #{config_name || '(none)'}")
       say pastel.dim("  github-repo: #{github_repo}")
       say pastel.dim("  pr-id:       #{pr_id}") if pr_id
-      say pastel.dim("  local-repo:  #{local_repo}") if local_repo
       say ''
 
       # --force: reset the review so it goes through the full pipeline again without re-fetching
@@ -116,7 +112,7 @@ module CLI
       # Step 1: Review via Claude (only if there are unreviewed PRs)
       if has_pending_review
         say pastel.bold("\nStep 1/2 — Reviewing pull requests...\n")
-        RunSkill.new.call('.claude/commands/review-pr.md', local_repo.to_s, pr_number: pr_id, config: config_name)
+        RunSkill.new.call('.claude/commands/review-pr.md', pr_number: pr_id, config: config_name)
       else
         say pastel.bold("\nStep 1/2 — Skipping (no unreviewed PRs)\n")
       end

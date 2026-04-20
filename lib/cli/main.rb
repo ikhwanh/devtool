@@ -160,7 +160,8 @@ module CLI
 
         if rollbar_token.present?
           FetchRollbar.new(token: rollbar_token, config: project_name).call
-          count = RollbarItem.for_config(project_name).unselected.count
+          submitted_ids = GithubIssue.for_config(project_name).submitted.select(:rollbar_item_id)
+          count = RollbarItem.for_config(project_name).where.not(id: submitted_ids).count
           rollbar_lines << "  #{project_name}: #{count} item(s)" if count.positive?
         end
       end
@@ -192,17 +193,19 @@ module CLI
         rollbar_token = cfg['rollbar_token']
 
         if github_repo
-          system("bin/devtool pr review --config #{Shellwords.escape(project_name)}")
+          system($PROGRAM_NAME, 'pr', 'review', '--config', project_name)
         else
           say pastel.dim("[#{project_name}] Skipping PR review — no github_repo configured")
         end
 
         if rollbar_token
-          system("bin/devtool issues create --config #{Shellwords.escape(project_name)} --autoselect")
+          system($PROGRAM_NAME, 'issues', 'create', '--config', project_name, '--autoselect')
         else
           say pastel.dim("[#{project_name}] Skipping issue creation — no rollbar_token configured")
         end
       end
+
+      invoke :sync
     end
 
     # ── digest ─────────────────────────────────────────────────────────────────

@@ -4,8 +4,6 @@ Run this Ruby snippet to get the PRs queued for review:
 bin/rails runner "puts PrReview.pending_review$PR_NUMBER_FILTER$CONFIG_FILTER.to_json"
 ```
 
-The first argument ($ARGUMENTS) is an optional path to a local repository. If provided, use it to read relevant source files for additional context about conventions and patterns.
-
 For each PR in the result:
 
 1. **Understand the change**
@@ -13,12 +11,7 @@ For each PR in the result:
    - Parse `diff_json` (JSON array of `{ filename, status, patch }`) to see every changed file
    - Parse `linked_issues_json` (JSON array of `{ number, title, body }`) — these are the GitHub issues this PR claims to fix
 
-2. **Read local source context** (only if a local repository path was provided)
-   - For each changed file, try to read the full file from the local repository path
-   - Also look for related files (tests, parent classes, config) that provide pattern/convention context
-   - Limit to 10 files, truncate each to ~200 lines if large
-
-3. **Analyse the change thoroughly** using these criteria before writing the review:
+2. **Analyse the change thoroughly** using these criteria before writing the review:
 
    **Correctness & safety**
    - Business logic correctness and edge cases
@@ -59,7 +52,7 @@ For each PR in the result:
 
    **Typos** — check for typos in code, comments, and documentation.
 
-4. **Produce the review in two parts:**
+3. **Produce the review in two parts:**
 
    **Part A — Inline comments** for every specific issue or suggestion that can be tied to a line of code.
 
@@ -84,7 +77,7 @@ For each PR in the result:
 
    Issues and suggestions that are tied to specific lines should appear as inline comments only, not repeated in the summary.
 
-5. **Save the review** using:
+4. **Save the review** using:
 
 ```
 bin/rails runner "PrReview.find(<id>).update!(review_body: '<escaped summary>', comments_json: '<escaped comments JSON>')"
