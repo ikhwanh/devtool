@@ -1,5 +1,26 @@
 The first argument ($ARGUMENTS) is the project config name (e.g. `hotelzero-web`).
 
+## Step 1: Tag untagged items with severity
+
+Run this to get all untagged Rollbar items for this config:
+
+```
+bin/rails runner "puts RollbarItem.where(severity: nil).for_config('$ARGUMENTS').to_json"
+```
+
+Tag each item with a severity level using these criteria:
+- **high**: Unhandled exceptions, 5xx errors, payment/auth/session failures, data corruption, crashes in core user flows, high occurrence count with broad user impact
+- **medium**: Handled exceptions with user-visible impact, 4xx errors in key flows, repeated warnings, moderate occurrence count
+- **low**: Minor UI/edge-case errors, infrequent occurrences, low-impact warnings, debug-level items
+
+For each item, update its severity:
+
+```
+bin/rails runner "RollbarItem.find(<id>).update!(severity: '<high|medium|low>')"
+```
+
+## Step 2: Generate issues
+
 Run this Ruby snippet to get the selected Rollbar items that don't already have a GitHub issue:
 
 ```
