@@ -1,123 +1,151 @@
 # devtool
 
-A CLI tool that fetches Rollbar errors, tags severity via Claude, and creates GitHub issues automatically.
+A CLI tool that automates developer workflows by integrating GitHub and Rollbar. It fetches pull requests and error items, uses Claude AI for code review and issue generation, and runs on a schedule via the `whenever` gem.
 
-## Prerequisites
+## Setup
 
-- Ruby (see `.ruby-version`)
-- `bundle install`
+```sh
+bundle install
+bin/rails db:setup
+cp .env.example .env  # fill in required environment variables
+```
 
-## Commands
+## Configuration
 
-### `config` — Manage project configuration
+Manage project configurations with the `config` command. Each project stores GitHub and Rollbar credentials.
 
 ```sh
 # Add or update a project
 bin/devtool config --project myapp \
-  --rollbar-token TOKEN \
-  --rollbar-account my-org \
-  --github-token TOKEN \
   --github-repo owner/repo \
-  --local-repository /path/to/repo \
+  --github-token ghp_... \
+  --rollbar-token ... \
+  --rollbar-account myorg \
+  --local-repository /path/to/local/repo \
   --default
 
 # List all configured projects
 bin/devtool config
 
-# Show a specific project
-bin/devtool config --project myapp
-
-# Remove a single key
-bin/devtool config --project myapp --unset rollbar_token
-
-# Delete a project
+# Remove a project
 bin/devtool config --project myapp --delete
+
+# Unset a single key
+bin/devtool config --project myapp --unset github-token
 ```
 
-### `rollbar analyze` — Fetch, tag, and select Rollbar items
+All commands accept `--config PROJECT` to target a specific project. The `--default` flag marks a project as the default so `--config` can be omitted.
 
-Fetches recent Rollbar items, uses Claude to tag severity, then prompts you to select items for issue creation.
+## Common Workflow
 
 ```sh
-bin/devtool rollbar analyze
+bin/devtool sync   # fetch latest PRs and Rollbar items across all projects
+bin/devtool work   # review PRs with Claude and create GitHub issues from Rollbar
 ```
 
-Options:
+Run `sync` first to pull in fresh data, then `work` to process it. `work` calls `sync` again at the end to update the pending summary. This pair is also what the hourly cron job runs automatically.
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--days-ago N` | `7` | Fetch items from the last N days |
-| `--severity high\|medium\|low` | — | Auto-select only items of this severity |
-| `--autoselect` | `false` | Select all items without an interactive prompt |
-| `--rollbar-token TOKEN` | config | Override the Rollbar API token |
-| `-c, --config PROJECT` | default | Use a specific project config |
+## Commands
 
-### `rollbar list` — List stored Rollbar items
+### sync
+
+Fetch the latest PRs and Rollbar items for all projects and write a pending summary to `tmp/devtool_pending`.
 
 ```sh
+bin/devtool sync
+```
+
+### work
+
+Review pending PRs via Claude and create GitHub issues from Rollbar items for all projects.
+
+```sh
+bin/devtool work
+```
+
+### pr
+
+```sh
+# Fetch open PRs (default: last 7 days)
+bin/devtool pr fetch
+bin/devtool pr fetch --days-ago 14
+bin/devtool pr fetch --id 123 --force
+
+# Review PRs with Claude and post comments to GitHub
+bin/devtool pr review
+bin/devtool pr review --id 123
+bin/devtool pr review --skip-post   # generate review without posting
+bin/devtool pr review --force       # re-review already-reviewed PRs
+```
+
+### rollbar
+
+```sh
+# Fetch Rollbar items (default: last 7 days)
+bin/devtool rollbar fetch
+bin/devtool rollbar fetch --days-ago 14
+
+# List stored items
 bin/devtool rollbar list
-bin/devtool rollbar list --severity high --limit 20
+bin/devtool rollbar list -s high -e production -n 20
 ```
 
-Options: `--severity`, `--selected`, `--env`, `--limit` (default 50).
+Severity levels: `high`, `medium`, `low`.
 
-### `issues create` — Generate and create GitHub issues
-
-Generates issue content via Claude for all selected Rollbar items, then creates the issues on GitHub.
+### issues
 
 ```sh
+# Generate GitHub issues from Rollbar items
 bin/devtool issues create
-bin/devtool issues create --skip-generate   # skip Claude step, create immediately
-```
+bin/devtool issues create --autoselect          # skip interactive selection
+bin/devtool issues create --skip-generate       # create without AI generation
+bin/devtool issues create -s high               # filter by severity
+bin/devtool issues create --local-repository /path/to/repo
 
-Options:
-
-| Flag | Description |
-|------|-------------|
-| `--github-repo owner/repo` | Override GitHub repo |
-| `--github-token TOKEN` | Override GitHub token |
-| `--local-repository PATH` | Local repo path for source-context enrichment |
-| `--skip-generate` | Skip Claude generation, create issues from existing data |
-| `-c, --config PROJECT` | Use a specific project config |
-
-## Typical workflow
-
-```sh
-# 1. Configure a project (one-time)
-bin/devtool config --project myapp \
-  --rollbar-token ... --rollbar-account my-org \
-  --github-token ... --github-repo owner/repo \
-  --default
-
-# 2. Fetch and triage Rollbar errors
-bin/devtool rollbar analyze --severity high --days-ago 1 --autoselect
-
-# 3. Create GitHub issues for selected items
-bin/devtool issues create
+# Resolve Rollbar items whose linked GitHub issues are closed
+bin/devtool issues resolve
+bin/devtool issues resolve --dry-run
 ```
 
 ## Scheduling with whenever
 
-`config/schedule.rb` defines a cron job that runs steps 2 and 3 automatically every 2 hours.
-
-**Install the crontab:**
+The `whenever` gem manages cron jobs. The default schedule (`config/schedule.rb`) runs `sync` and `work` every hour.
 
 ```sh
+# Install crontab entries
 bundle exec whenever --update-crontab
-```
 
-**Remove the crontab:**
-
-```sh
+# Remove crontab entries
 bundle exec whenever --clear-crontab
-```
 
-**View the generated cron entries:**
-
-```sh
+# Preview what would be written to crontab
 bundle exec whenever
 ```
 
-Logs are written to `log/cron.log`.
+Cron output is logged to `log/cron.log`.
 
-To change the schedule, edit [config/schedule.rb](config/schedule.rb).
+### schedule.rb
+
+```ruby
+every 1.hour do
+  command 'bin/devtool sync'
+  command 'bin/devtool work'
+end
+```
+
+### MOTD (terminal summary on shell start)
+
+`config/motd.rb` schedules only `sync` to run hourly, writing a pending summary to `tmp/devtool_pending`. To display it on every new terminal session, run:
+
+```sh
+bin/install-motd
+```
+
+Then install the cron job:
+
+```sh
+bundle exec whenever --load-file config/motd.rb --update-crontab
+
+# To remove
+bundle exec whenever --load-file config/motd.rb --clear-crontab
+```

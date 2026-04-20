@@ -208,35 +208,6 @@ module CLI
       invoke :sync
     end
 
-    # ── digest ─────────────────────────────────────────────────────────────────
-
-    desc 'digest', 'Generate a daily digest of Rollbar items, GitHub issues, and assigned PRs'
-    method_option :days_ago, type: :numeric, default: 1, aliases: '--days-ago',
-                             desc: 'How many days back to look for Rollbar items and GitHub issues (default: 1)'
-    def digest
-      pastel   = Pastel.new
-      tmp_path = nil
-
-      say pastel.bold("\nDevtool Daily Digest\n")
-      say pastel.dim("  days-ago: #{options[:days_ago]}")
-      say ''
-
-      # Step 1: Fetch data across all projects
-      say pastel.bold("Step 1/2 — Fetching data...\n")
-      data = FetchDigest.new(days_ago: options[:days_ago]).call
-
-      tmp_path = Rails.root.join('tmp', "digest_#{Time.current.strftime('%Y%m%d_%H%M%S')}.json")
-      File.write(tmp_path, JSON.generate(data))
-
-      # Step 2: Generate digest via Claude
-      say pastel.bold("\nStep 2/2 — Generating digest...\n")
-      output_file = Rails.root.join('digest', "#{Time.current.strftime('%Y-%m-%d')}.md").to_s
-      RunSkill.new.call('.claude/commands/digest.md', tmp_path.to_s, output_file: output_file)
-      say pastel.dim("\nSaved to #{output_file}\n")
-    ensure
-      File.delete(tmp_path) if tmp_path && File.exist?(tmp_path)
-    end
-
     def self.exit_on_failure?
       true
     end
