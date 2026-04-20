@@ -17,9 +17,11 @@ RSpec.describe FetchPullRequests do
     )
   end
 
-  def pr_double(number:, title:, sha:, draft: false, created_at: 1.day.ago, body: nil)
+  def pr_double(number:, title:, sha:, draft: false, created_at: 1.day.ago, body: nil, labels: ['ready-to-review'])
     head = double(sha: sha)
-    double(number: number, title: title, body: body, draft: draft, created_at: created_at, head: head)
+    label_doubles = labels.map { |name| double(name: name) }
+    double(number: number, title: title, body: body, draft: draft, created_at: created_at, head: head,
+           labels: label_doubles)
   end
 
   def file_double(filename: 'app/models/user.rb', status: 'modified', patch: '@@ -1 +1 @@')
@@ -123,6 +125,30 @@ RSpec.describe FetchPullRequests do
       end
 
       let(:pr) { pr_double(number: 1, title: 'WIP: refactor', sha: 'abc') }
+    end
+
+    context 'without the ready-to-review label' do
+      let(:pr) { pr_double(number: 1, title: 'Add feature', sha: 'abc123', labels: []) }
+
+      before { allow(octokit_client).to receive(:pull_requests).and_return([pr]) }
+
+      it 'does not queue the PR' do
+        expect { service.call }.not_to change(PrReview, :count)
+      end
+
+      it 'returns changed: false' do
+        expect(service.call[:changed]).to be false
+      end
+    end
+
+    context 'with ready-to-review label among others' do
+      let(:pr) { pr_double(number: 1, title: 'Add feature', sha: 'abc123', labels: ['bug', 'ready-to-review']) }
+
+      before { allow(octokit_client).to receive(:pull_requests).and_return([pr]) }
+
+      it 'queues the PR' do
+        expect { service.call }.to change(PrReview, :count).by(1)
+      end
     end
 
     context 'with a PR older than days_ago' do

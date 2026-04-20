@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class PostPrReviews
-  AI_REVIEWED_LABEL = 'ai-reviewed'
-
   def initialize(github_repo:, github_token:, pr_number: nil, config: nil, pastel: Pastel.new,
                  spinner_factory: method(:default_spinner))
     @github_repo     = github_repo
@@ -27,8 +25,6 @@ class PostPrReviews
     client  = Octokit::Client.new(access_token: @github_token)
     posted  = 0
 
-    ensure_label_exists(client)
-
     pending.each do |review|
       spinner = @spinner_factory.call("Posting review for PR ##{review.pr_number}: #{review.pr_title&.truncate(50)}...")
       spinner.auto_spin
@@ -42,8 +38,6 @@ class PostPrReviews
           comments: review.inline_comments
         )
 
-        client.add_labels_to_an_issue(@github_repo, review.pr_number, [AI_REVIEWED_LABEL])
-
         review.update!(review_url: result.html_url, submitted_at: Time.current)
         posted += 1
         spinner.success(@pastel.green("Posted: #{result.html_url}"))
@@ -56,12 +50,6 @@ class PostPrReviews
   end
 
   private
-
-  def ensure_label_exists(client)
-    client.label(@github_repo, AI_REVIEWED_LABEL)
-  rescue Octokit::NotFound
-    client.add_label(@github_repo, AI_REVIEWED_LABEL, '0075ca')
-  end
 
   def default_spinner(msg)
     TTY::Spinner.new("[:spinner] #{msg}", format: :dots)

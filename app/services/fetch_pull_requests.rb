@@ -61,7 +61,7 @@ class FetchPullRequests
     PrReview.for_repo(@github_repo).for_config(@config).submitted.older_than(PrReview::RETENTION_PERIOD).destroy_all
 
     msg = "#{prs.size} open PR(s) found, #{queued} queued for review"
-    msg += ", #{skipped} skipped (draft/WIP)" if skipped.positive?
+    msg += ", #{skipped} skipped (draft/WIP/no ready-to-review label)" if skipped.positive?
     spinner.success(@pastel.green(msg))
     { changed: queued.positive? }
   rescue StandardError => e
@@ -86,6 +86,7 @@ class FetchPullRequests
   def not_ready_for_review?(pr)
     return true if pr.draft
     return true if pr.title.match?(/\A\s*(\[?WIP\]?|WIP:|draft:|bump\s)/i)
+    return true unless pr.labels.any? { |l| l.name == 'ready-to-review' }
 
     false
   end

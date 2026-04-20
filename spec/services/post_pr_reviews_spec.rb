@@ -22,7 +22,6 @@ RSpec.describe PostPrReviews do
 
   before do
     allow(Octokit::Client).to receive(:new).with(access_token: github_token).and_return(octokit_client)
-    allow(octokit_client).to receive(:label).with(github_repo, PostPrReviews::AI_REVIEWED_LABEL)
   end
 
   describe '#call' do
@@ -31,7 +30,6 @@ RSpec.describe PostPrReviews do
 
       before do
         allow(octokit_client).to receive(:create_pull_request_review).and_return(review_result)
-        allow(octokit_client).to receive(:add_labels_to_an_issue)
       end
 
       it 'posts the review with body and inline comments to GitHub' do
@@ -41,15 +39,6 @@ RSpec.describe PostPrReviews do
           body: review.review_body,
           event: 'COMMENT',
           comments: review.inline_comments
-        )
-        service.call
-      end
-
-      it 'adds the ai-reviewed label to the PR' do
-        expect(octokit_client).to receive(:add_labels_to_an_issue).with(
-          github_repo,
-          review.pr_number,
-          [PostPrReviews::AI_REVIEWED_LABEL]
         )
         service.call
       end
@@ -68,22 +57,6 @@ RSpec.describe PostPrReviews do
       end
     end
 
-    context 'when the ai-reviewed label does not exist' do
-      let!(:review) { create(:pr_review, :reviewed, github_repo: github_repo) }
-
-      before do
-        allow(octokit_client).to receive(:label).and_raise(Octokit::NotFound)
-        allow(octokit_client).to receive(:add_label)
-        allow(octokit_client).to receive(:create_pull_request_review).and_return(review_result)
-        allow(octokit_client).to receive(:add_labels_to_an_issue)
-      end
-
-      it 'creates the label before proceeding' do
-        expect(octokit_client).to receive(:add_label).with(github_repo, PostPrReviews::AI_REVIEWED_LABEL, '0075ca')
-        service.call
-      end
-    end
-
     context 'when posting a review fails' do
       let!(:review) { create(:pr_review, :reviewed, github_repo: github_repo) }
 
@@ -98,11 +71,6 @@ RSpec.describe PostPrReviews do
       it 'leaves the review unsubmitted' do
         service.call
         expect(review.reload.review_url).to be_nil
-      end
-
-      it 'does not apply the label when the review post failed' do
-        expect(octokit_client).not_to receive(:add_labels_to_an_issue)
-        service.call
       end
     end
 
