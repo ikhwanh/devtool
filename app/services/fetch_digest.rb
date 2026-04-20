@@ -48,7 +48,7 @@ class FetchDigest
     {
       rollbar_items: fetch_rollbar(cfg),
       github_issues: fetch_github_issues(cfg, client),
-      assigned_prs:  fetch_assigned_prs(cfg, client)
+      assigned_prs: fetch_assigned_prs(cfg, client)
     }
   end
 
@@ -75,10 +75,10 @@ class FetchDigest
         end
 
         items << {
-          id:                 item['id'],
-          title:              item['title'],
-          environment:        item['environment'],
-          total_occurrences:  item['total_occurrences'],
+          id: item['id'],
+          title: item['title'],
+          environment: item['environment'],
+          total_occurrences: item['total_occurrences'],
           last_occurrence_at: Time.zone.at(item['last_occurrence_timestamp']).iso8601
         }
       end
@@ -114,11 +114,11 @@ class FetchDigest
           .reject(&:pull_request)
           .map do |i|
             {
-              number:     i.number,
-              title:      i.title,
-              body:       i.body&.truncate(500),
-              labels:     i.labels.map(&:name),
-              url:        i.html_url,
+              number: i.number,
+              title: i.title,
+              body: i.body&.truncate(500),
+              labels: i.labels.map(&:name),
+              url: i.html_url,
               created_at: i.created_at.iso8601,
               updated_at: i.updated_at.iso8601
             }
@@ -139,10 +139,10 @@ class FetchDigest
           .select { |pr| pr.requested_reviewers.map(&:login).include?(current_user) }
           .map do |pr|
             {
-              number:     pr.number,
-              title:      pr.title,
-              author:     pr.user.login,
-              url:        pr.html_url,
+              number: pr.number,
+              title: pr.title,
+              author: pr.user.login,
+              url: pr.html_url,
               created_at: pr.created_at.iso8601
             }
           end

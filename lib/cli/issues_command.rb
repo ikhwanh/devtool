@@ -20,14 +20,40 @@ module CLI
                                      desc: 'GitHub token (falls back to config/GITHUB_TOKEN env var)'
     method_option :config,           type: :string,                  aliases: '-c',
                                      desc: 'Project config to use (defaults to the project marked as default)'
+    method_option :all,              type: :boolean, default: false, aliases: '--all',
+                                     desc: 'Fetch Rollbar items and create issues for all configured projects'
 
     def create
+      if options[:all]
+        pastel = Pastel.new
+        say pastel.bold("\nIssues Create — All Projects\n")
+        Config.all.group_by(&:project).each_key do |project_name|
+          cfg           = Config.project_config(project_name)
+          rollbar_token = cfg['rollbar_token']
+
+          unless rollbar_token
+            say pastel.dim("[#{project_name}] Skipping — no rollbar_token configured")
+            next
+          end
+
+          say pastel.bold("\n[#{project_name}] Fetching Rollbar items...")
+          result = FetchRollbar.new(token: rollbar_token, config: project_name).call
+
+          if result[:changed]
+            system("bin/devtool issues create --config #{Shellwords.escape(project_name)} --autoselect")
+          else
+            say pastel.dim("[#{project_name}] No new Rollbar items")
+          end
+        end
+        return
+      end
+
       pastel = Pastel.new
       cfg    = load_project_config(options[:config])
 
       rollbar_token = options[:rollbar_token] || cfg['rollbar_token']
       github_repo   = options[:github_repo]   || cfg['github_repo']
-      github_token  = options[:github_token]  || cfg['github_token'] || ENV['GITHUB_TOKEN']
+      github_token  = options[:github_token]  || cfg['github_token'] || ENV.fetch('GITHUB_TOKEN', nil)
       local_repo    = options[:local_repository] || cfg['local_repository']
       config_name   = options[:config] || Config.default_project
       severity      = options[:severity]&.downcase
@@ -93,7 +119,7 @@ module CLI
 
       rollbar_token = options[:rollbar_token] || cfg['rollbar_token']
       github_repo   = options[:github_repo]   || cfg['github_repo']
-      github_token  = options[:github_token]  || cfg['github_token'] || ENV['GITHUB_TOKEN']
+      github_token  = options[:github_token]  || cfg['github_token'] || ENV.fetch('GITHUB_TOKEN', nil)
       config_name   = options[:config] || Config.default_project
 
       unless github_repo
@@ -101,17 +127,17 @@ module CLI
         exit 1
       end
 
-      say pastel.bold("\nRollbar Issue Resolver#{options[:dry_run] ? pastel.yellow(' [dry-run]') : ''}\n")
+      say pastel.bold("\nRollbar Issue Resolver#{pastel.yellow(' [dry-run]') if options[:dry_run]}\n")
       say pastel.dim("  config:      #{config_name || '(none)'}")
       say pastel.dim("  github-repo: #{github_repo}")
       say ''
 
       result = ResolveRollbarItems.new(
-        github_repo:   github_repo,
-        github_token:  github_token,
+        github_repo: github_repo,
+        github_token: github_token,
         rollbar_token: rollbar_token,
-        config:        config_name,
-        dry_run:       options[:dry_run]
+        config: config_name,
+        dry_run: options[:dry_run]
       ).call
 
       say pastel.bold.green("\n#{result[:resolved]} item(s) resolved, #{result[:skipped]} skipped.\n")

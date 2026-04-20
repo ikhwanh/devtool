@@ -9,7 +9,6 @@ set :output, 'log/cron.log'
 set :environment, ENV.fetch('RAILS_ENV', 'development')
 
 every 1.hour do
-  rake 'scheduled:pr_review_all'
-  rake 'scheduled:rollbar_issues_all'
+  command 'bin/devtool pr review --all'
+  command 'bin/devtool issues create --all'
 end
-

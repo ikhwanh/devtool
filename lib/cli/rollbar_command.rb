@@ -88,10 +88,10 @@ module CLI
       say pastel.bold("\nFetching Rollbar items...\n")
       result = FetchRollbar.new(token: rollbar_token, days_ago: options[:days_ago], config: config_name).call
 
-      unless result[:changed]
-        say pastel.yellow("No new or updated items since last run. Skipping.\n")
-        exit 0
-      end
+      return if result[:changed]
+
+      say pastel.yellow("No new or updated items since last run. Skipping.\n")
+      exit 0
     end
 
     private

@@ -8,5 +8,5 @@ set :output, 'log/cron.log'
 set :environment, ENV.fetch('RAILS_ENV', 'development')
 
 every 1.hour do
-  rake 'scheduled:fetch_summary'
+  command 'bin/devtool sync'
 end

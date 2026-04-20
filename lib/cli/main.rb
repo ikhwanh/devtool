@@ -135,6 +135,50 @@ module CLI
     desc 'pr COMMAND', 'Pull request commands'
     subcommand 'pr', PrCommand
 
+    # ── sync ───────────────────────────────────────────────────────────────────
+
+    desc 'sync', 'Fetch PRs and Rollbar items for all projects and update the pending summary'
+    def sync
+      pastel        = Pastel.new
+      pending_file  = Rails.root.join('tmp/devtool_pending')
+      pr_lines      = []
+      rollbar_lines = []
+
+      say pastel.bold("\nSync — All Projects\n")
+
+      Config.all.group_by(&:project).each_key do |project_name|
+        cfg           = Config.project_config(project_name)
+        github_repo   = cfg['github_repo']
+        github_token  = cfg['github_token'] || ENV.fetch('GITHUB_TOKEN', nil)
+        rollbar_token = cfg['rollbar_token']
+
+        if github_repo && github_token.present?
+          FetchPullRequests.new(github_repo: github_repo, github_token: github_token, config: project_name).call
+          count = PrReview.for_config(project_name).pending_review.count
+          pr_lines << "  #{project_name}: #{count} PR(s)" if count.positive?
+        end
+
+        next if rollbar_token.blank?
+
+        FetchRollbar.new(token: rollbar_token, config: project_name).call
+        count = RollbarItem.for_config(project_name).unselected.count
+        rollbar_lines << "  #{project_name}: #{count} item(s)" if count.positive?
+      end
+
+      if pr_lines.empty? && rollbar_lines.empty?
+        FileUtils.rm_f(pending_file)
+        say pastel.dim("Nothing pending.\n")
+      else
+        lines = ["[devtool #{Time.current.strftime('%b %d %H:%M')}]"]
+        lines << 'PRs pending review:' if pr_lines.any?
+        lines.concat(pr_lines)
+        lines << 'Rollbar items:' if rollbar_lines.any?
+        lines.concat(rollbar_lines)
+        File.write(pending_file, "#{lines.join("\n")}\n")
+        say pastel.green("Pending summary written to #{pending_file}\n")
+      end
+    end
+
     # ── digest ─────────────────────────────────────────────────────────────────
 
     desc 'digest', 'Generate a daily digest of Rollbar items, GitHub issues, and assigned PRs'

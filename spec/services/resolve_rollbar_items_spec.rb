@@ -13,10 +13,10 @@ RSpec.describe ResolveRollbarItems do
 
   subject(:service) do
     described_class.new(
-      github_repo:   github_repo,
-      github_token:  github_token,
+      github_repo: github_repo,
+      github_token: github_token,
       rollbar_token: rollbar_token,
-      pastel:        pastel,
+      pastel: pastel,
       spinner_factory: spinner_factory
     )
   end
@@ -89,7 +89,7 @@ RSpec.describe ResolveRollbarItems do
 
       it 'does not call the Rollbar API' do
         service.call
-        expect(WebMock).not_to have_requested(:patch, %r{api.rollbar.com})
+        expect(WebMock).not_to have_requested(:patch, /api.rollbar.com/)
       end
     end
 
@@ -102,11 +102,11 @@ RSpec.describe ResolveRollbarItems do
     context 'in dry-run mode' do
       subject(:service) do
         described_class.new(
-          github_repo:   github_repo,
-          github_token:  github_token,
+          github_repo: github_repo,
+          github_token: github_token,
           rollbar_token: rollbar_token,
-          dry_run:       true,
-          pastel:        pastel,
+          dry_run: true,
+          pastel: pastel,
           spinner_factory: spinner_factory
         )
       end
@@ -120,7 +120,7 @@ RSpec.describe ResolveRollbarItems do
 
       it 'does not call the Rollbar API' do
         service.call
-        expect(WebMock).not_to have_requested(:patch, %r{api.rollbar.com})
+        expect(WebMock).not_to have_requested(:patch, /api.rollbar.com/)
       end
 
       it 'still counts the item as resolved in the result' do
