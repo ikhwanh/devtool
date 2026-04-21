@@ -208,6 +208,36 @@ module CLI
       invoke :sync
     end
 
+    # ── install-skills ─────────────────────────────────────────────────────────
+
+    DEFAULT_SKILLS = %w[qa].freeze
+
+    desc 'install-skills [SKILL...]', 'Copy selected project skills to ~/.claude/commands/'
+    long_desc <<~DESC
+      Copies Claude slash-command skill files from .claude/commands/ to ~/.claude/commands/
+      so they are available in every Claude Code session.
+
+      With no arguments, installs the default set: #{DEFAULT_SKILLS.join(', ')}.
+    DESC
+    def install_skills(*skills)
+      pastel     = Pastel.new
+      skills     = DEFAULT_SKILLS if skills.empty?
+      source_dir = Rails.root.join('.claude/commands')
+      target_dir = Pathname(Dir.home).join('.claude/commands')
+
+      FileUtils.mkdir_p(target_dir)
+
+      skills.each do |skill|
+        src = source_dir.join("#{skill}.md")
+        unless src.exist?
+          say pastel.red("error: skill not found: #{src}")
+          exit(1)
+        end
+        FileUtils.cp(src, target_dir.join("#{skill}.md"))
+        say pastel.green("installed: #{skill} → #{target_dir}/#{skill}.md")
+      end
+    end
+
     def self.exit_on_failure?
       true
     end

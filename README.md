@@ -107,6 +107,26 @@ bin/devtool issues resolve
 bin/devtool issues resolve --dry-run
 ```
 
+## Claude Skills
+
+Project-level Claude slash commands live in [.claude/commands/](.claude/commands/). Some skills are generic enough to be useful globally across all projects.
+
+### Installing skills globally
+
+Copy selected skills to `~/.claude/commands/` so they are available in every Claude Code session:
+
+```sh
+bin/devtool install-skills          # installs the default set (qa)
+bin/devtool install-skills qa       # install a specific skill
+bin/devtool install-skills qa foo   # install multiple skills
+```
+
+### Available skills
+
+| Skill | Description |
+|-------|-------------|
+| `qa` | End-to-end QA: login, crawl all pages, inspect for bugs, or walk a named flow |
+
 ## Scheduling with whenever
 
 The `whenever` gem manages cron jobs. The default schedule (`config/schedule.rb`) runs `sync` and `work` every hour.
