@@ -17,6 +17,7 @@ class FetchPullRequests
     raise ArgumentError, '--github-token is required (or set it via `bin/devtool config`)' if @github_token.blank?
 
     client = Octokit::Client.new(access_token: @github_token)
+    current_login = client.user.login
 
     spinner_msg = @pr_number ? "Fetching PR ##{@pr_number}..." : "Fetching open pull requests (last #{@days_ago} days)..."
     spinner = @spinner_factory.call(spinner_msg)
@@ -33,7 +34,7 @@ class FetchPullRequests
     queued  = 0
     skipped = 0
     prs.each do |pr|
-      if not_ready_for_review?(pr)
+      if not_ready_for_review?(pr, current_login)
         skipped += 1
         next
       end
@@ -83,12 +84,13 @@ class FetchPullRequests
     end
   end
 
-  def not_ready_for_review?(pr)
+  def not_ready_for_review?(pr, current_login)
     return true if pr.draft
     return true if pr.title.match?(/\A\s*(\[?WIP\]?|WIP:|draft:|bump\s)/i)
-    return true unless pr.labels.any? { |l| l.name == 'ready-to-review' }
+    return false if pr.requested_reviewers.map(&:login).include?(current_login)
+    return false if pr.labels.any? { |l| l.name == 'ready-to-review' }
 
-    false
+    true
   end
 
   def default_spinner(msg)
