@@ -85,7 +85,8 @@ class FetchRollbar
         total_occurrences: raw['total_occurrences'],
         last_occurrence_at: Time.zone.at(raw['last_occurrence_timestamp']),
         project: @rollbar_project,
-        config: @config
+        config: @config,
+        rollbar_counter: raw['counter']
       )
 
       changed = true if record.new_record? || old_ts != raw['last_occurrence_timestamp']

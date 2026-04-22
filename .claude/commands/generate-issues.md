@@ -29,7 +29,7 @@ bin/rails runner "
   rollbar_account = cfg['rollbar_account']
   items = RollbarItem.for_config('$ARGUMENTS').selected.reject(&:submitted_to_github?).map do |item|
     item.as_json.merge(
-      rollbar_url: \"https://app.rollbar.com/a/#{rollbar_account}/fix/item/#{item.project}/#{item.rollbar_id}#detail\"
+      rollbar_url: \"https://app.rollbar.com/a/#{rollbar_account}/fix/item/#{item.project}/#{item.rollbar_counter}\"
     )
   end
   puts items.to_json
