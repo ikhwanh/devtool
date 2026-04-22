@@ -25,18 +25,16 @@ Run this Ruby snippet to get the selected Rollbar items that don't already have 
 
 ```
 bin/rails runner "
-  cfg = Config.project_config('$ARGUMENTS')
-  rollbar_account = cfg['rollbar_account']
   items = RollbarItem.for_config('$ARGUMENTS').selected.reject(&:submitted_to_github?).map do |item|
     item.as_json.merge(
-      rollbar_url: \"https://app.rollbar.com/a/#{rollbar_account}/fix/item/#{item.project}/#{item.rollbar_counter}\"
+      rollbar_url: \"https://app.rollbar.com/a/#{item.project}/fix/item/#{item.project}/#{item.rollbar_counter}\"
     )
   end
   puts items.to_json
 "
 ```
 
-If `cfg['local_repository']` is present, use it to find source files mentioned in stack traces for deeper fix suggestions.
+Run `bin/rails runner "puts Config.project_config('$ARGUMENTS')['local_repository']"` — if it returns a path, use it to find source files mentioned in stack traces for deeper fix suggestions.
 
 For each item:
 

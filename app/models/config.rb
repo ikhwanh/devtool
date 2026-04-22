@@ -4,7 +4,7 @@ class Config < ApplicationRecord
   validates :project, presence: true
   validates :key, presence: true, uniqueness: { scope: :project }
 
-  KEYS = %w[rollbar_token rollbar_account github_token github_repo local_repository].freeze
+  KEYS = %w[rollbar_token github_token github_repo local_repository].freeze
 
   scope :for_project, ->(project) { where(project: project) }
   scope :defaults, -> { where(is_default: true) }

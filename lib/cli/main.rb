@@ -15,8 +15,6 @@ module CLI
                                      desc: 'Project name'
     method_option :rollbar_token,    type: :string,  aliases: '--rollbar-token',
                                      desc: 'Rollbar API token'
-    method_option :rollbar_account,  type: :string,  aliases: '--rollbar-account',
-                                     desc: 'Rollbar account name (org slug in the URL)'
     method_option :github_token,     type: :string,  aliases: '--github-token',
                                      desc: 'GitHub personal access token'
     method_option :github_repo,      type: :string,  aliases: '--github-repo',
@@ -88,7 +86,6 @@ module CLI
 
       key_options = {
         rollbar_token: options[:rollbar_token],
-        rollbar_account: options[:rollbar_account],
         github_token: options[:github_token],
         github_repo: options[:github_repo],
         local_repository: options[:local_repository]

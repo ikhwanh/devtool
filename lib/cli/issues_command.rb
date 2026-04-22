@@ -25,9 +25,8 @@ module CLI
       pastel = Pastel.new
       cfg    = load_project_config(options[:config])
 
-      rollbar_token   = options[:rollbar_token] || cfg['rollbar_token']
-      rollbar_account = cfg['rollbar_account']
-      github_repo     = options[:github_repo]   || cfg['github_repo']
+      rollbar_token = options[:rollbar_token] || cfg['rollbar_token']
+      github_repo   = options[:github_repo]   || cfg['github_repo']
       github_token    = options[:github_token]  || cfg['github_token'] || ENV.fetch('GITHUB_TOKEN', nil)
       local_repo      = options[:local_repository] || cfg['local_repository']
       config_name     = options[:config] || Config.default_project
@@ -43,10 +42,6 @@ module CLI
         exit 1
       end
 
-      unless rollbar_account
-        say pastel.red('Error: rollbar_account is required (set it via `bin/devtool config --rollbar-account SLUG`)')
-        exit 1
-      end
 
       say pastel.bold("\nGitHub Issue Creator\n")
       say pastel.dim("  config:      #{config_name || '(none)'}")
