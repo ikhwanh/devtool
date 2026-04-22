@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_15_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_22_000001) do
   create_table "configs", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.boolean "is_default", default: false, null: false
@@ -66,6 +66,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_15_000001) do
     t.datetime "last_occurrence_at"
     t.text "occurrence_data"
     t.string "project"
+    t.integer "rollbar_counter"
     t.integer "rollbar_id", null: false
     t.boolean "selected", default: false, null: false
     t.string "severity"
@@ -73,6 +74,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_15_000001) do
     t.integer "total_occurrences", default: 0
     t.datetime "updated_at", null: false
     t.index ["config"], name: "index_rollbar_items_on_config"
+    t.index ["rollbar_counter"], name: "index_rollbar_items_on_rollbar_counter"
     t.index ["rollbar_id"], name: "index_rollbar_items_on_rollbar_id", unique: true
     t.index ["selected"], name: "index_rollbar_items_on_selected"
     t.index ["severity"], name: "index_rollbar_items_on_severity"
