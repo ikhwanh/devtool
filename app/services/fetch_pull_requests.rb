@@ -63,6 +63,7 @@ class FetchPullRequests
 
     msg = "#{prs.size} open PR(s) found, #{queued} queued for review"
     msg += ", #{skipped} skipped (draft/WIP/no ready-to-review label)" if skipped.positive?
+    msg += " from project #{@config}" if @config
     spinner.success(@pastel.green(msg))
     { changed: queued.positive? }
   rescue StandardError => e

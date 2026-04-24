@@ -30,7 +30,8 @@ class FetchRollbar
     deduped = deduplicate(fetched)
     changed = persist(deduped, cutoff)
 
-    spinner.success(@pastel.green("Fetched #{deduped.size} items (#{RollbarItem.count} total stored, deduplicated by title)"))
+    suffix = @config ? " from project #{@config}" : ""
+    spinner.success(@pastel.green("Fetched #{deduped.size} items (#{RollbarItem.count} total stored, deduplicated by title)#{suffix}"))
     { changed: changed }
   rescue StandardError => e
     spinner&.error(@pastel.red("Failed: #{e.message}"))
