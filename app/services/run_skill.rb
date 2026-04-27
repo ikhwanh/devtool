@@ -4,6 +4,7 @@ require 'open3'
 
 class RunSkill
   CLAUDE_CLI = 'claude'
+  DEFAULT_EFFORT = ENV.fetch('CLAUDE_EFFORT', 'normal')
 
   def initialize(root: Rails.root)
     @root = root
@@ -23,7 +24,7 @@ class RunSkill
 
     if output_file
       FileUtils.mkdir_p(File.dirname(output_file))
-      Open3.popen2(CLAUDE_CLI, '-p', prompt, '--verbose', chdir: @root.to_s) do |_stdin, stdout, wait_thr|
+      Open3.popen2(CLAUDE_CLI, '-p', prompt, '--verbose', '--effort', DEFAULT_EFFORT, chdir: @root.to_s) do |_stdin, stdout, wait_thr|
         File.open(output_file, 'w') do |f|
           stdout.each_line do |line|
             $stdout.print line
@@ -35,7 +36,7 @@ class RunSkill
         raise "claude exited with code #{status.exitstatus}" unless status.success?
       end
     else
-      pid = spawn(CLAUDE_CLI, '-p', prompt, '--verbose',
+      pid = spawn(CLAUDE_CLI, '-p', prompt, '--verbose', '--effort', DEFAULT_EFFORT,
                   chdir: @root.to_s,
                   in: '/dev/null', out: :out, err: :err)
       _, status = Process.wait2(pid)
