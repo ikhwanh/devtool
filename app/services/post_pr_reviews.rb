@@ -18,7 +18,7 @@ class PostPrReviews
     pending = pending.where(pr_number: @pr_number) if @pr_number
 
     if pending.empty?
-      Rails.logger.debug @pastel.yellow('No reviews ready to post.')
+      $stdout.puts @pastel.yellow('No reviews ready to post.')
       return
     end
 
@@ -46,7 +46,7 @@ class PostPrReviews
       end
     end
 
-    Rails.logger.debug @pastel.bold.green("\n#{posted} PR review(s) posted.\n")
+    $stdout.puts @pastel.bold.green("\n#{posted} PR review(s) posted.\n")
   end
 
   private

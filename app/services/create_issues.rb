@@ -24,7 +24,7 @@ class CreateIssues
     pending = GithubIssue.for_config(@config).pending_submission.includes(:rollbar_item)
 
     if pending.empty?
-      Rails.logger.debug @pastel.yellow('No new issues to create (all already submitted to GitHub).')
+      $stdout.puts @pastel.yellow('No new issues to create (all already submitted to GitHub).')
       return
     end
 
@@ -55,7 +55,7 @@ class CreateIssues
       end
     end
 
-    Rails.logger.debug @pastel.bold.green("\n#{created} GitHub issue(s) created.\n")
+    $stdout.puts @pastel.bold.green("\n#{created} GitHub issue(s) created.\n")
   end
 
   private
