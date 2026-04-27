@@ -1,4 +1,7 @@
-The first argument ($ARGUMENTS) is either a GitHub issue number (e.g. `42`) or `all` to fix every open issue.
+The argument ($ARGUMENTS) is one of:
+- A single GitHub issue number (e.g. `42`)
+- A space-separated list of issue numbers (e.g. `42 43 44`)
+- `all` to fix every open issue
 
 ## Step 1: Load the issue(s)
 
@@ -10,11 +13,13 @@ gh issue list --state open --json number,title,body,labels,comments
 
 Process each issue in the list sequentially using Steps 2–6 below, then print a combined report at the end.
 
-Otherwise, load the single issue:
+Otherwise, split `$ARGUMENTS` on spaces to get a list of issue numbers. For each number, load the issue:
 
 ```
-gh issue view $ARGUMENTS --json number,title,body,labels,comments
+gh issue view <number> --json number,title,body,labels,comments
 ```
+
+Process each issue sequentially using Steps 2–6 below, then print a combined report at the end.
 
 ---
 
