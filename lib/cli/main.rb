@@ -207,7 +207,7 @@ module CLI
 
     # ── install-skills ─────────────────────────────────────────────────────────
 
-    DEFAULT_SKILLS = %w[qa].freeze
+    DEFAULT_SKILLS = %w[qa fix-issue].freeze
 
     desc 'install-skills [SKILL...]', 'Copy selected project skills to ~/.claude/commands/'
     long_desc <<~DESC
